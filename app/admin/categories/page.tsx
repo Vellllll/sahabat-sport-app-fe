@@ -1,6 +1,6 @@
 // app/admin/categories/page.tsx
 import { getAllCategories, getCategories } from '@/lib/api';
-import CategoryListOptimized from './category-list';
+import CategoryListOptimized from './_components/category-list';
 import AddCategoryModal from './add-category-modal';
 import { Suspense } from 'react';
 
