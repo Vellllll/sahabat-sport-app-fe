@@ -1,19 +1,29 @@
-// app/admin/products/actions.ts
 'use server'
 
 import { revalidatePath } from 'next/cache';
-import { ProductSchema, ProductFormState } from '@/lib/schema';
+import { ProductSchema } from '@/lib/schema';
 import { cookies } from 'next/headers';
+import { UpdateProductSchema } from '@/lib/products/schema';
+
+export interface ProductFormState {
+  message: string | null;
+  errors?: {
+    name?: string[];
+    product_category_id?: string[];
+    is_displayed?: string[];
+  };
+}
 
 const API_URL = process.env.INTERNAL_API_URL;
 
-export async function createProduct(prevState: any, formData: FormData) {
+// --- ACTION: CREATE PRODUCT ---
+export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
   const cookieStore = await cookies();
   const token = cookieStore.get("session_token")?.value;
-  // 2. Tarik data menggunakan key yang sama persis
+
   const validatedFields = ProductSchema.safeParse({
     name: formData.get('name'),
-    product_category_id: formData.get('product_category_id'), // <--- Sesuaikan
+    product_category_id: formData.get('product_category_id'),
     is_displayed: formData.get('is_displayed') === 'on',
   });
 
@@ -25,23 +35,60 @@ export async function createProduct(prevState: any, formData: FormData) {
   }
 
   try {
-    // 3. Kirim ke API dengan struktur yang diharapkan Backend
-    // Jika backend minta snake_case (product_category_id), kirim persis seperti itu.
     const response = await fetch(`${API_URL}/products`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      // ValidatedFields.data sekarang berisi: { name, product_category_id, is_displayed }
       body: JSON.stringify(validatedFields.data), 
     });
 
     if (!response.ok) throw new Error('API Error');
 
     revalidatePath('/admin/products');
-    return { message: 'Produk berhasil ditambahkan!', errors: {} };
+    return { message: 'Produk berhasil ditambahkan!' };
   } catch (err) {
-    return { message: 'Gagal menghubungi server.', errors: {} };
+    return { message: 'Gagal menghubungi server.' };
+  }
+}
+
+// --- ACTION: UPDATE PRODUCT ---
+export async function updateProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+
+  const validatedFields = UpdateProductSchema.safeParse({
+    id: formData.get('id'),
+    name: formData.get('name'),
+    product_category_id: formData.get('product_category_id'),
+    is_displayed: formData.get('is_displayed') === 'on',
+  });
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Gagal validasi data.',
+    };
+  }
+
+  const { id, ...dataToUpdate } = validatedFields.data;
+
+  try {
+    const response = await fetch(`${API_URL}/products/${id}`, {
+      method: 'PUT', 
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(dataToUpdate),
+    });
+
+    if (!response.ok) throw new Error('API Error');
+
+    revalidatePath('/admin/products');
+    return { message: 'Produk berhasil diupdate!' };
+  } catch (err) {
+    return { message: 'Gagal menghubungi server.' };
   }
 }

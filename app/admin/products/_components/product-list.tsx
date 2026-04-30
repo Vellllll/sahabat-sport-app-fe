@@ -14,6 +14,7 @@ import {
   Tag,
   ListFilter,
 } from "lucide-react";
+import EditProductModal from "./edit-product-modal";
 
 interface Category {
   id: string;
@@ -21,18 +22,19 @@ interface Category {
 }
 
 interface Product {
-  product_category: any;
   id: string;
   name: string;
-  category?: { name: string };
-  categoryId?: string;
+  product_category_id?: string;
   is_displayed: boolean;
+  product_category?: {
+    name: string;
+  };
 }
 
 interface Props {
   initialData: Product[];
-  categories: Category[]; // Daftar opsi filter
-  currentCategoryId: string; // ID kategori terpilih dari URL
+  categories: Category[];
+  currentCategoryId: string;
   totalPages: number;
   currentPage: number;
   currentLimit: number;
@@ -48,33 +50,31 @@ export default function ProductListOptimized({
   currentLimit,
   totalItems,
 }: Props) {
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const [isPending, startTransition] = useTransition();
-    const [inputValue, setInputValue] = useState(searchParams.get('q') || '');
-  
-    // Fungsi dinamis untuk update URL
-    const updateUrl = (newParams: Record<string, string | number>) => {
-      const params = new URLSearchParams(searchParams.toString());
-      Object.entries(newParams).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value.toString());
-        } else {
-          params.delete(key); // Jika value kosong, hapus dari URL agar rapi (misal pilih "Semua Kategori")
-        }
-      });
-      startTransition(() => router.push(`?${params.toString()}`));
-    };
-  
-    const from = (currentPage - 1) * currentLimit + 1;
-    const to = Math.min(currentPage * currentLimit, totalItems);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [inputValue, setInputValue] = useState(searchParams.get("q") || "");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const updateUrl = (newParams: Record<string, string | number>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value.toString());
+      } else {
+        params.delete(key);
+      }
+    });
+    startTransition(() => router.push(`?${params.toString()}`));
+  };
+
+  const from = (currentPage - 1) * currentLimit + 1;
+  const to = Math.min(currentPage * currentLimit, totalItems);
 
   return (
     <div className="space-y-6">
       {/* FILTER & SEARCH BAR SECTION */}
       <div className="flex flex-col sm:flex-row gap-3">
-        
-        {/* Dropdown Filter Kategori */}
         <div className="relative sm:w-48">
           <ListFilter className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
           <select
@@ -84,16 +84,18 @@ export default function ProductListOptimized({
           >
             <option value="">Semua Kategori</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
-          {/* Custom Dropdown Arrow */}
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
-            <svg className="fill-current h-4 w-4" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+            <svg className="fill-current h-4 w-4" viewBox="0 0 20 20">
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
           </div>
         </div>
 
-        {/* Input Search */}
         <div className="relative flex-1">
           <Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
           <input
@@ -102,34 +104,29 @@ export default function ProductListOptimized({
             placeholder="Cari nama produk..."
             className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] focus:ring-4 focus:ring-[#165dfc]/5 rounded-2xl outline-none transition-all text-sm font-semibold text-slate-700"
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && updateUrl({ q: inputValue, page: 1 })}
+            onKeyDown={(e) => e.key === "Enter" && updateUrl({ q: inputValue, page: 1 })}
           />
         </div>
 
-        {/* Action Button */}
         <button
           onClick={() => updateUrl({ q: inputValue, page: 1 })}
           disabled={isPending}
           className="bg-[#165dfc] text-white px-8 rounded-2xl font-bold text-xs hover:bg-[#124ecb] transition-all disabled:opacity-50 flex items-center justify-center gap-2 tracking-widest min-w-[120px]"
         >
-          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'CARI'}
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "CARI"}
         </button>
       </div>
 
-      {/* Info Total Data & List Area (Sama seperti kode sebelumnya) */}
+      {/* INFO TOTAL DATA */}
       <div className="px-2 flex items-center gap-2">
         <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
-          {totalItems > 0 ? `${from}-${to} dari ${totalItems} PRODUK` : '0 PRODUK'}
+          {totalItems > 0 ? `${from}-${to} dari ${totalItems} PRODUK` : "0 PRODUK"}
         </span>
       </div>
 
-      {/* List Area */}
-      <div
-        className={`space-y-3 min-h-[400px] ${
-          isPending ? "opacity-50" : "opacity-100 transition-opacity"
-        }`}
-      >
+      {/* LIST AREA */}
+      <div className={`space-y-3 min-h-[400px] ${isPending ? "opacity-50" : "opacity-100 transition-opacity"}`}>
         {initialData.length > 0 ? (
           initialData.map((product) => (
             <div
@@ -137,16 +134,12 @@ export default function ProductListOptimized({
               className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:border-[#165dfc]/30 hover:shadow-md transition-all gap-4"
             >
               <div className="flex flex-col gap-1.5">
-                <h3 className="text-sm font-bold text-slate-800">
-                  {product.name}
-                </h3>
+                <h3 className="text-sm font-bold text-slate-800">{product.name}</h3>
                 <div className="flex items-center gap-3">
-                  {/* Badge Kategori */}
                   <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-wider">
                     <Tag className="h-3 w-3" />
                     {product.product_category?.name || "Tanpa Kategori"}
                   </div>
-                  {/* Badge Status Display */}
                   {product.is_displayed ? (
                     <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md uppercase tracking-wider">
                       <Eye className="h-3 w-3" /> Ditampilkan
@@ -159,12 +152,10 @@ export default function ProductListOptimized({
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* ACTION BUTTONS */}
               <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
-                  onClick={() =>
-                    router.push(`/admin/products/${product.id}/edit`)
-                  }
+                  onClick={() => setEditingProduct(product)}
                   title="Edit Produk"
                   className="p-2.5 text-slate-400 hover:text-[#165dfc] hover:bg-[#165dfc]/5 rounded-xl transition-all"
                 >
@@ -172,7 +163,6 @@ export default function ProductListOptimized({
                 </button>
                 <button
                   title="Hapus Produk"
-                  // Logika hapus (bisa panggil modal seperti kategori)
                   className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -189,7 +179,7 @@ export default function ProductListOptimized({
         )}
       </div>
 
-      {/* Pagination Controls */}
+      {/* PAGINATION CONTROLS */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-slate-100">
         <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -230,6 +220,13 @@ export default function ProductListOptimized({
           </button>
         </div>
       </div>
+
+      <EditProductModal
+        isOpen={!!editingProduct}
+        product={editingProduct}
+        categories={categories}
+        onClose={() => setEditingProduct(null)}
+      />
     </div>
   );
 }
