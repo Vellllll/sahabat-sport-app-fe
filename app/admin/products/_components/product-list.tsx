@@ -26,7 +26,7 @@ interface Product {
   name: string;
   category?: { name: string };
   categoryId?: string;
-  isDisplayed: boolean;
+  is_displayed: boolean;
 }
 
 interface Props {
@@ -147,7 +147,7 @@ export default function ProductListOptimized({
                     {product.product_category?.name || "Tanpa Kategori"}
                   </div>
                   {/* Badge Status Display */}
-                  {product.isDisplayed ? (
+                  {product.is_displayed ? (
                     <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md uppercase tracking-wider">
                       <Eye className="h-3 w-3" /> Ditampilkan
                     </div>

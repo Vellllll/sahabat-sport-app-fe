@@ -5,6 +5,7 @@ import ProductListOptimized from './_components/product-list';
 import Link from 'next/link';
 import { Plus, Package } from 'lucide-react';
 import { Suspense } from 'react';
+import AddProductModal from './_components/add-product-modal';
 
 export default async function ProductsPage({
   searchParams,
@@ -26,7 +27,6 @@ export default async function ProductsPage({
   return (
     <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 flex justify-center items-start">
       <div className="w-full max-w-[800px]">
-        {/* Header Section (Sama seperti sebelumnya) */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-[#165dfc]/10 rounded-2xl flex items-center justify-center">
@@ -34,41 +34,27 @@ export default async function ProductsPage({
             </div>
             <div>
               <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Katalog Produk</h1>
-              <p className="text-slate-400 text-sm font-medium">Kelola inventaris Sahabat Sport.</p>
+              {/* <p className="text-slate-400 text-sm font-medium">Sahabat Sport v2.0</p> */}
             </div>
           </div>
-          <Link href="/admin/products/add" className="...">
-             {/* Tombol Tambah (Sama) */}
-          </Link>
+          
+          {/* PANGGIL MODAL DI SINI */}
+          <AddProductModal categories={categoryData} />
         </div>
 
-        <Suspense key={query + currentPage + currentLimit + currentCategoryId} fallback={<ListSkeleton />}>
-          <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 p-6">
+        <Suspense fallback={<div className="h-40 bg-white rounded-3xl animate-pulse" />}>
+          <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-6">
             <ProductListOptimized 
               initialData={productData.products} 
-              totalPages={productData.totalPages} 
-              currentPage={currentPage}
-              currentLimit={currentLimit}
-              totalItems={productData.totalItems}
-              categories={categoryData} // Oper daftar kategori ke UI
-              currentCategoryId={currentCategoryId} // Oper kategori terpilih ke UI
+              categories={categoryData}
+              {...productData} // Oper totalPages, totalItems
+              currentPage={Number(params.page) || 1}
+              currentLimit={Number(params.limit) || 20}
+              currentCategoryId={params.categoryId || ''}
             />
           </div>
         </Suspense>
       </div>
     </main>
-  );
-}
-
-// (ListSkeleton sama seperti sebelumnya)
-
-function ListSkeleton() {
-  return (
-    <div className="space-y-4 animate-pulse">
-      <div className="h-12 bg-slate-50 rounded-2xl w-full" />
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-20 bg-slate-50 rounded-2xl w-full" />
-      ))}
-    </div>
   );
 }

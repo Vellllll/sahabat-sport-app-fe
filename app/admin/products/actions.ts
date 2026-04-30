@@ -5,54 +5,43 @@ import { revalidatePath } from 'next/cache';
 import { ProductSchema, ProductFormState } from '@/lib/schema';
 import { cookies } from 'next/headers';
 
-export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
-  // 1. Validate the form data locally first (Save bandwidth/API hits)
+const API_URL = process.env.INTERNAL_API_URL;
+
+export async function createProduct(prevState: any, formData: FormData) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+  // 2. Tarik data menggunakan key yang sama persis
   const validatedFields = ProductSchema.safeParse({
     name: formData.get('name'),
-    is_displayed: formData.get('isDisplayed') === 'on',
-    product_category_id: formData.get('categoryId'),
+    product_category_id: formData.get('product_category_id'), // <--- Sesuaikan
+    is_displayed: formData.get('is_displayed') === 'on',
   });
 
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Validation failed. Check your inputs.',
+      message: 'Gagal validasi data.',
     };
   }
 
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session_token')?.value;
-    // 2. Proxy the request to your Backend API
-    const response = await fetch(`${process.env.INTERNAL_API_URL}/products/create`, {
+    // 3. Kirim ke API dengan struktur yang diharapkan Backend
+    // Jika backend minta snake_case (product_category_id), kirim persis seperti itu.
+    const response = await fetch(`${API_URL}/products`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(validatedFields.data),
+      // ValidatedFields.data sekarang berisi: { name, product_category_id, is_displayed }
+      body: JSON.stringify(validatedFields.data), 
     });
 
-    const result = await response.json();
+    if (!response.ok) throw new Error('API Error');
 
-    if (!response.ok) {
-      // Handle backend-specific errors (e.g., "Product name already exists")
-      return {
-        message: result.message || 'Backend API error occurred.',
-      };
-    }
-
-    // 3. Success! Clear the cache for the product list
     revalidatePath('/admin/products');
-    
-    return { 
-      message: 'Product created successfully!', 
-      errors: {} 
-    };
-
-  } catch (error) {
-    return {
-      message: 'Network error. Could not reach the server.',
-    };
+    return { message: 'Produk berhasil ditambahkan!', errors: {} };
+  } catch (err) {
+    return { message: 'Gagal menghubungi server.', errors: {} };
   }
 }
