@@ -92,3 +92,26 @@ export async function updateProduct(prevState: ProductFormState, formData: FormD
     return { message: 'Gagal menghubungi server.' };
   }
 }
+
+export async function deleteProduct(id: string) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+
+  try {
+    const response = await fetch(`${API_URL}/products/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Gagal menghapus data dari server');
+    }
+
+    revalidatePath('/admin/products');
+    return { success: true, message: 'Berhasil dihapus' };
+  } catch (error) {
+    return { success: false, message: 'Gagal menghapus produk' };
+  }
+}

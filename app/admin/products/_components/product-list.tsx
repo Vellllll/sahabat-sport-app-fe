@@ -15,6 +15,7 @@ import {
   ListFilter,
 } from "lucide-react";
 import EditProductModal from "./edit-product-modal";
+import DeleteProductModal from "./delete-product-modal";
 
 interface Category {
   id: string;
@@ -55,6 +56,7 @@ export default function ProductListOptimized({
   const [isPending, startTransition] = useTransition();
   const [inputValue, setInputValue] = useState(searchParams.get("q") || "");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
 
   const updateUrl = (newParams: Record<string, string | number>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -161,7 +163,10 @@ export default function ProductListOptimized({
                 >
                   <Edit2 className="h-4 w-4" />
                 </button>
+
+                {/* UBAH TOMBOL HAPUS INI */}
                 <button
+                  onClick={() => setDeletingProduct(product)}
                   title="Hapus Produk"
                   className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                 >
@@ -226,6 +231,12 @@ export default function ProductListOptimized({
         product={editingProduct}
         categories={categories}
         onClose={() => setEditingProduct(null)}
+      />
+
+      <DeleteProductModal
+        isOpen={!!deletingProduct}
+        product={deletingProduct}
+        onClose={() => setDeletingProduct(null)}
       />
     </div>
   );
