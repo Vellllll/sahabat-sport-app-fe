@@ -1,9 +1,7 @@
-// HAPUS 'use client' DI SINI! Ini adalah Server Component.
 import Link from 'next/link';
 import { Package, ArrowLeft } from 'lucide-react';
 import ProductItemManager from '../../_components/product-item-manager';
-import { getProductItems } from './actions'; 
-// Pastikan fungsi getProductItems kamu bisa dijalankan di Server (tanpa window/browser API)
+import { getProductById, getProductItems } from './actions'; 
 
 export default async function ProductItemsPage({
   params,
@@ -12,24 +10,17 @@ export default async function ProductItemsPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ page?: string; limit?: string; isDisplayed?: string }>;
 }) {
-  // 1. Await parameter dari URL
   const { id } = await params;
   const sp = await searchParams;
 
-  // 2. Ambil query untuk pagination (Sama seperti halaman list produk utama!)
   const currentPage = Number(sp.page) || 1;
   const currentLimit = Number(sp.limit) || 10;
   
-  // Logic untuk parsing query boolean
   const isDisplayed = sp.isDisplayed === 'true' ? true : 
                       sp.isDisplayed === 'false' ? false : null;
 
-  // 3. FETCH DATA DI SERVER! (Lebih cepat, aman, tanpa loading screen muter-muter di browser)
-  // Tidak ada lagi useEffect atau useState.
   const data = await getProductItems(currentPage, currentLimit, parseInt(id), isDisplayed);
-  
-  // Mock Parent Product (Nanti ganti dengan fetch beneran jika ada: await getProductById(id))
-  const parentProduct = { id, name: `Parent Product #${id}` }; 
+  const parentProduct = await getProductById(parseInt(id));
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 flex justify-center items-start">
@@ -60,16 +51,9 @@ export default async function ProductItemsPage({
           </div>
         </div>
 
-        {/* Manager Component (Client Component).
-            Kita oper data yang sudah matang dari server ke sini. 
-        */}
         <ProductItemManager 
-          productId={parentProduct.id} 
-          initialItems={data.data || []} // Gunakan data asli dari API
-          // Kalau manager kamu butuh info pagination, oper sekalian:
-          // totalPages={data.totalPages}
-          // currentPage={currentPage}
-          // dll...
+          productId={parentProduct.id}
+          initialItems={data.items}
         />
 
       </div>
