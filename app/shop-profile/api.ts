@@ -1,4 +1,6 @@
-// app/shop-profile/api.ts
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { serverApiFetch } from "@/lib/server-api";
+
 export interface ApiShopProfile {
     name: string;
     address: string;
@@ -6,27 +8,24 @@ export interface ApiShopProfile {
 }
 
 export async function getShopProfile(): Promise<ApiShopProfile | null> {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-
     try {
-        const res = await fetch(`${apiUrl}/shop-profile`, { next: { revalidate: 3600 } });
-        if (!res.ok) return null;
-        const data = await res.json();
+        const data = await serverApiFetch<any>('/shop-profile', {
+            withAuth: false,
+            revalidate: 3600,
+            tags: [CACHE_TAGS.shopProfile],
+        });
         return data?.[0] || null;
     } catch {
         return null;
     }
 }
 
-// Tambahkan fungsi helper di app/shop-profile/api.ts
 export function formatWhatsAppNumber(phone: string): string {
-    // Menghapus semua karakter non-digit
     let cleaned = phone.replace(/\D/g, '');
-    
-    // Jika dimulai dengan '0', ganti dengan '62' (Kode negara Indonesia)
+
     if (cleaned.startsWith('0')) {
       cleaned = '62' + cleaned.substring(1);
     }
-    
+
     return cleaned;
   }

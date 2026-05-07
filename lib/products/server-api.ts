@@ -1,6 +1,5 @@
-import { cookies } from "next/headers";
-
-const API_URL = process.env.INTERNAL_API_URL;
+import { CACHE_TAGS } from "@/lib/cache-tags";
+import { serverApiFetch } from "@/lib/server-api";
 
 interface GetProductsParams {
   search?: string;
@@ -22,9 +21,6 @@ export async function getProducts({
   limit = 20,
   categoryId = "",
 }: GetProductsParams) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
   const params = new URLSearchParams({
     q: search,
     page: page.toString(),
@@ -35,13 +31,10 @@ export async function getProducts({
     params.append("categoryId", categoryId);
   }
 
-  const res = await fetch(`${API_URL}/products?${params.toString()}`, {
-    headers: { Authorization: `Bearer ${token}` },
-    next: { revalidate: 0 },
+  const json = await serverApiFetch<any>(`/products?${params.toString()}`, {
+    revalidate: 60,
+    tags: [CACHE_TAGS.products],
   });
-
-  if (!res.ok) throw new Error("Gagal mengambil data produk");
-  const json = await res.json();
 
   return {
     products: json.data ?? [],
@@ -51,19 +44,10 @@ export async function getProducts({
 }
 
 export async function getProductById(id: number) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
-  const res = await fetch(`${API_URL}/products/${id}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    next: { revalidate: 0 },
+  const json = await serverApiFetch<any>(`/products/${id}`, {
+    revalidate: 60,
+    tags: [CACHE_TAGS.products],
   });
-
-  if (!res.ok) throw new Error("Failed to fetch product");
-
-  const json = await res.json();
   const rawProduct: ProductApiResponse = json.data ?? json;
 
   return {
@@ -80,9 +64,6 @@ export async function getProductItems(
   productId: number = 0,
   isDisplayed: boolean | null = null
 ) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
@@ -93,15 +74,10 @@ export async function getProductItems(
     params.set("isDisplayed", String(isDisplayed));
   }
 
-  const res = await fetch(`${API_URL}/product-items?${params.toString()}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    next: { revalidate: 0 },
+  const json = await serverApiFetch<any>(`/product-items?${params.toString()}`, {
+    revalidate: 60,
+    tags: [CACHE_TAGS.productItems],
   });
-
-  if (!res.ok) throw new Error("Failed to fetch product items");
-  const json = await res.json();
 
   return {
     items: json.data ?? [],

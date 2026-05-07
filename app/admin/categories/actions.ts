@@ -2,8 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { CategorySchema, CategoryFormState } from '@/lib/schema';
-import { cookies } from 'next/headers';
 import z from 'zod';
+import { serverApiFetch } from '@/lib/server-api';
+import { CACHE_TAGS } from '@/lib/cache-tags';
+import { revalidateTag } from 'next/cache';
 
 export async function createCategory(prevState: CategoryFormState, formData: FormData): Promise<CategoryFormState> {
   const validatedFields = CategorySchema.safeParse({
@@ -18,23 +20,11 @@ export async function createCategory(prevState: CategoryFormState, formData: For
   }
 
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session_token')?.value;
-    const response = await fetch(`${process.env.INTERNAL_API_URL}/product-categories/create`, {
+    await serverApiFetch('/product-categories/create', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(validatedFields.data),
+      body: validatedFields.data,
     });
-
-    if (!response.ok) {
-      const result = await response.json();
-      return { message: result.message || 'Gagal menyimpan kategori ke database.' };
-    }
-
-    // Paksa Next.js untuk refresh cache kategori
+    revalidateTag(CACHE_TAGS.categories, 'max');
     revalidatePath('/admin/products'); 
     revalidatePath('/admin/categories');
 
@@ -73,25 +63,13 @@ export async function updateCategory(prevState: FormState, formData: FormData): 
   const { id, name } = validatedFields.data;
 
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session_token')?.value;
-    // API Call: PUT/PATCH ke /product-categories/:id
-    const response = await fetch(`${process.env.INTERNAL_API_URL}/product-categories/${id}`, {
-      method: 'PUT', // Ganti 'PATCH' jika backend kamu pakai PATCH
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name }),
+    await serverApiFetch(`/product-categories/${id}`, {
+      method: 'PUT',
+      body: { name },
     });
-
-    if (!response.ok) {
-      const result = await response.json().catch(() => ({}));
-      return { message: result.message || 'Gagal memperbarui kategori ke database.' };
-    }
-
-    // Refresh cache agar UI langsung terupdate
+    revalidateTag(CACHE_TAGS.categories, 'max');
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/products');
     return { message: 'Kategori berhasil diupdate!', errors: {} };
   } catch (error) {
     return { message: 'Kesalahan jaringan. Gagal menghubungi server.' };
@@ -101,21 +79,12 @@ export async function updateCategory(prevState: FormState, formData: FormData): 
 // --- ACTION: DELETE KATEGORI ---
 export async function deleteCategory(id: string) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('session_token')?.value;
-    // API Call: DELETE ke /product-categories/:id
-    const response = await fetch(`${process.env.INTERNAL_API_URL}/product-categories/${id}`, {
+    await serverApiFetch(`/product-categories/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
     });
-
-    if (!response.ok) {
-      throw new Error('Gagal menghapus data dari server');
-    }
-
+    revalidateTag(CACHE_TAGS.categories, 'max');
     revalidatePath('/admin/categories');
+    revalidatePath('/admin/products');
     return { success: true, message: 'Berhasil dihapus' };
   } catch (error) {
     return { success: false, message: 'Gagal menghapus kategori' };

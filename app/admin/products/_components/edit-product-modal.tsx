@@ -19,14 +19,15 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   product: Product | null;
+  categories: { id: string; name: string }[];
 }
 
-export default function EditProductModal({ isOpen, onClose, product }: Props) {
+export default function EditProductModal({ isOpen, onClose, product, categories: initialCategories }: Props) {
   const initialState: ProductFormState = { message: null };
   const [state, formAction, isPending] = useActionState(updateProduct, initialState);
 
   // State lokal untuk kategori
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(initialCategories);
   const [isLoadingCats, setIsLoadingCats] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
 
@@ -37,9 +38,13 @@ export default function EditProductModal({ isOpen, onClose, product }: Props) {
     }
   }, [isOpen, product]);
 
-  // 1. Fetch kategori hanya saat modal terbuka (Lazy Loading)
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && initialCategories.length > 0) {
+      setCategories(initialCategories);
+      return;
+    }
+
+    if (isOpen && initialCategories.length === 0) {
       const fetchData = async () => {
         setIsLoadingCats(true);
         try {
@@ -53,7 +58,7 @@ export default function EditProductModal({ isOpen, onClose, product }: Props) {
       };
       fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, initialCategories]);
 
   // 2. Feedback sukses & Auto-close
   useEffect(() => {

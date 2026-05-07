@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { serverApiFetch } from '@/lib/server-api'
 
 export async function authenticate(prevState: any, formData: FormData) {
   const email_or_phone_number = formData.get('email_or_phone_number')
@@ -18,19 +19,11 @@ export async function authenticate(prevState: any, formData: FormData) {
 
   try {
     // 2. Hit API Backend Utama (NestJS)
-    const response = await fetch(`${process.env.INTERNAL_API_URL}/login`, {
+    const data = await serverApiFetch<any>('/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email_or_phone_number, password }),
+      body: { email_or_phone_number, password },
+      withAuth: false,
     })
-
-    const data = await response.json()
-    console.log(data)
-
-    // Jika NestJS melempar UnauthorizedException atau error lainnya
-    if (!response.ok) {
-      return { error: data.message || 'Email atau Password salah.' }
-    }
 
     // 3. Simpan Token ke Cookie
     const cookieStore = await cookies()
@@ -52,8 +45,7 @@ export async function authenticate(prevState: any, formData: FormData) {
       })
     }
 
-  } catch (error) {
-    console.error('Login Error:', error)
+  } catch (error: any) {
     return { error: 'Gagal terhubung ke server backend.' }
   }
 

@@ -1,6 +1,7 @@
 'use server'
 
 import { RegisterState, RegisterFields } from './types'
+import { serverApiFetch } from '@/lib/server-api'
 
 export async function registerUser(
   prevState: RegisterState | undefined,
@@ -23,24 +24,11 @@ export async function registerUser(
   }
 
   try {
-    const response = await fetch('http://localhost:4000/register', {
+    await serverApiFetch('/register', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(rawData),
+      body: rawData,
+      withAuth: false,
     })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      return { 
-        success: false,
-        error: result.message || 'Pendaftaran gagal.', 
-        fields: rawData 
-      }
-    }
 
     return { success: true, message: 'Pendaftaran berhasil! Silakan masuk.' }
 

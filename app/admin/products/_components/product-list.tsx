@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import {
   Search,
   ChevronLeft,
@@ -13,6 +14,7 @@ import {
   EyeOff,
   Tag,
   ListFilter,
+  PackageOpen,
 } from "lucide-react";
 import EditProductModal from "./edit-product-modal";
 import DeleteProductModal from "./delete-product-modal";
@@ -156,6 +158,13 @@ export default function ProductListOptimized({
 
               {/* ACTION BUTTONS */}
               <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                <Link
+                  href={`/admin/products/${product.id}/items`}
+                  title="Kelola Item Produk"
+                  className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                >
+                  <PackageOpen className="h-4 w-4" />
+                </Link>
                 <button
                   onClick={() => setEditingProduct(product)}
                   title="Edit Produk"
@@ -227,6 +236,7 @@ export default function ProductListOptimized({
       </div>
 
       <EditProductModal
+        key={editingProduct?.id ?? "closed"}
         isOpen={!!editingProduct}
         product={editingProduct}
         categories={categories}

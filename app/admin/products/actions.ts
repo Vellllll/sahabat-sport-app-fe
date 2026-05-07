@@ -1,9 +1,10 @@
 'use server'
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { ProductSchema } from '@/lib/schema';
-import { cookies } from 'next/headers';
 import { UpdateProductSchema } from '@/lib/products/schema';
+import { CACHE_TAGS } from '@/lib/cache-tags';
+import { serverApiFetch } from '@/lib/server-api';
 
 export interface ProductFormState {
   message: string | null;
@@ -14,34 +15,16 @@ export interface ProductFormState {
   };
 }
 
-const API_URL = process.env.INTERNAL_API_URL;
-
 export async function getCategories() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
-  const res = await fetch(`${API_URL}/product-categories`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    next: { revalidate: 3600 },
+  const json = await serverApiFetch<any>('/product-categories', {
+    revalidate: 300,
+    tags: [CACHE_TAGS.categories],
   });
-
-  if (!res.ok) {
-    throw new Error(`Failed to fetch categories: ${res.statusText}`);
-  }
-
-  const json = await res.json();
   return json.data ?? [];
 }
 
 // --- ACTION: CREATE PRODUCT ---
 export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
   const validatedFields = ProductSchema.safeParse({
     name: formData.get('name'),
     product_category_id: formData.get('product_category_id'),
@@ -56,18 +39,14 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
   }
 
   try {
-    const response = await fetch(`${API_URL}/products`, {
+    await serverApiFetch('/products', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(validatedFields.data), 
+      body: validatedFields.data,
     });
 
-    if (!response.ok) throw new Error('API Error');
-
+    revalidateTag(CACHE_TAGS.products, 'max');
     revalidatePath('/admin/products');
+    revalidatePath('/admin/categories');
     return { message: 'Produk berhasil ditambahkan!' };
   } catch (err) {
     return { message: 'Gagal menghubungi server.' };
@@ -76,9 +55,6 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
 
 // --- ACTION: UPDATE PRODUCT ---
 export async function updateProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
   const validatedFields = UpdateProductSchema.safeParse({
     id: formData.get('id'),
     name: formData.get('name'),
@@ -96,17 +72,12 @@ export async function updateProduct(prevState: ProductFormState, formData: FormD
   const { id, ...dataToUpdate } = validatedFields.data;
 
   try {
-    const response = await fetch(`${API_URL}/products/${id}`, {
-      method: 'PUT', 
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(dataToUpdate),
+    await serverApiFetch(`/products/${id}`, {
+      method: 'PUT',
+      body: dataToUpdate,
     });
 
-    if (!response.ok) throw new Error('API Error');
-
+    revalidateTag(CACHE_TAGS.products, 'max');
     revalidatePath('/admin/products');
     return { message: 'Produk berhasil diupdate!' };
   } catch (err) {
@@ -115,21 +86,12 @@ export async function updateProduct(prevState: ProductFormState, formData: FormD
 }
 
 export async function deleteProduct(id: string) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-
   try {
-    const response = await fetch(`${API_URL}/products/${id}`, {
+    await serverApiFetch(`/products/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
     });
 
-    if (!response.ok) {
-      throw new Error('Gagal menghapus data dari server');
-    }
-
+    revalidateTag(CACHE_TAGS.products, 'max');
     revalidatePath('/admin/products');
     return { success: true, message: 'Berhasil dihapus' };
   } catch (error) {
