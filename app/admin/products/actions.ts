@@ -16,6 +16,27 @@ export interface ProductFormState {
 
 const API_URL = process.env.INTERNAL_API_URL;
 
+export async function getCategories() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+
+  const res = await fetch(`${API_URL}/product-categories`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    next: { revalidate: 3600 },
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to fetch categories: ${res.statusText}`);
+  }
+
+  const json = await res.json();
+  return json.data ?? [];
+}
+
 // --- ACTION: CREATE PRODUCT ---
 export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
   const cookieStore = await cookies();
