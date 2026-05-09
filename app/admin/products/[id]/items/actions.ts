@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache';
+import { z } from 'zod';
 import {
     getProductById as getProductByIdFromApi,
     getProductItems as getProductItemsFromApi,
@@ -16,58 +17,115 @@ export async function getProductById(id: number) {
     return getProductByIdFromApi(id);
 }
 
-export interface CreateProductItemState {
+// 1. Standarisasi State
+export interface ProductItemFormState {
+    success: boolean;
     message: string | null;
-    errors?: {
-        name?: string[];
-        price?: string[];
-        pic_url?: string[];
-        stock?: string[];
-        product_id?: string[];
-    };
-    success?: boolean;
+    errors?: Record<string, string[]>;
+    timestamp?: number;
 }
 
+// 2. Skema Validasi Zod
+const ProductItemSchema = z.object({
+    id: z.string().optional(),
+    product_id: z.coerce.number().positive(),
+    name: z.string().min(1, "Nama varian wajib diisi"),
+    price: z.coerce.number().min(0, "Harga tidak valid"),
+    stock: z.coerce.number().min(0, "Stok tidak valid"),
+    pic_url: z.string().optional(),
+    is_displayed: z.boolean().default(true),
+});
+
+// 3. CREATE ACTION
 export async function createProductItem(
-    _prevState: CreateProductItemState,
+    _prevState: ProductItemFormState,
     formData: FormData
-): Promise<CreateProductItemState> {
-    const name = String(formData.get('name') ?? '').trim();
-    const pic_url = String(formData.get('pic_url') ?? '').trim();
-    const price = Number(formData.get('price'));
-    const stock = Number(formData.get('stock'));
-    const product_id = Number(formData.get('product_id'));
-    const is_displayed = formData.get('is_displayed') === 'on';
+): Promise<ProductItemFormState> {
+    const validated = ProductItemSchema.safeParse({
+        product_id: formData.get('product_id'),
+        name: formData.get('name'),
+        price: formData.get('price'),
+        stock: formData.get('stock'),
+        pic_url: formData.get('pic_url'),
+        is_displayed: formData.get('is_displayed') === 'on',
+    });
 
-    const errors: CreateProductItemState['errors'] = {};
-
-    if (!name) errors.name = ['Nama item wajib diisi'];
-    if (!Number.isFinite(price) || price < 0) errors.price = ['Harga tidak valid'];
-    if (!Number.isFinite(stock) || stock < 0) errors.stock = ['Stok tidak valid'];
-    if (!Number.isFinite(product_id) || product_id <= 0) errors.product_id = ['Product ID tidak valid'];
-
-    if (Object.keys(errors).length > 0) {
-        return { message: 'Validasi gagal.', errors, success: false };
+    if (!validated.success) {
+        return { success: false, message: 'Validasi gagal.', errors: validated.error.flatten().fieldErrors };
     }
 
     try {
         await serverApiFetch('/product-items', {
             method: 'POST',
-            body: {
-                name,
-                price,
-                pic_url,
-                stock,
-                is_displayed,
-                product_id,
-            },
+            body: validated.data,
         });
 
-        revalidateTag(CACHE_TAGS.productItems, 'max');
-        revalidatePath(`/admin/products/${product_id}/items`);
+        revalidateTag(CACHE_TAGS.productItems, 'max' as any);
+        revalidatePath(`/admin/products/${validated.data.product_id}/items`);
 
-        return { message: 'Item produk berhasil dibuat!', success: true };
-    } catch (_error) {
-        return { message: 'Gagal membuat item produk.', success: false };
+        return { success: true, message: 'Varian berhasil dibuat!', timestamp: Date.now() };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'Gagal membuat varian.', timestamp: Date.now() };
+    }
+}
+
+// 4. UPDATE ACTION
+export async function updateProductItem(
+    _prevState: ProductItemFormState,
+    formData: FormData
+): Promise<ProductItemFormState> {
+    const id = formData.get('id');
+    const validated = ProductItemSchema.safeParse({
+        product_id: formData.get('product_id'),
+        name: formData.get('name'),
+        price: formData.get('price'),
+        stock: formData.get('stock'),
+        pic_url: formData.get('pic_url'),
+        is_displayed: formData.get('is_displayed') === 'on',
+    });
+
+    if (!validated.success || !id) {
+        return { success: false, message: 'Validasi gagal.', errors: validated.error?.flatten().fieldErrors };
+    }
+
+    try {
+        await serverApiFetch(`/product-items/${id}`, {
+            method: 'PUT',
+            body: { ...validated.data, productId: validated.data.product_id }, // DTO mapping jika backend NestJS/Spring
+        });
+
+        revalidateTag(CACHE_TAGS.productItems, 'max' as any);
+        revalidatePath(`/admin/products/${validated.data.product_id}/items`);
+
+        return { success: true, message: 'Varian berhasil diupdate!', timestamp: Date.now() };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'Gagal mengupdate varian.', timestamp: Date.now() };
+    }
+}
+
+export async function deleteProductItem(
+    productId: number,
+    itemId: string
+): Promise<ProductItemFormState> {
+    try {
+        await serverApiFetch(`/product-items/${itemId}`, {
+            method: 'DELETE',
+        });
+
+        // Revalidasi agar UI sinkron
+        revalidateTag(CACHE_TAGS.productItems, 'max' as any);
+        revalidatePath(`/admin/products/${productId}/items`);
+
+        return { 
+            success: true, 
+            message: 'Varian berhasil dihapus!', 
+            timestamp: Date.now() 
+        };
+    } catch (error: any) {
+        return { 
+            success: false, 
+            message: error.message || 'Gagal menghapus varian.', 
+            timestamp: Date.now() 
+        };
     }
 }

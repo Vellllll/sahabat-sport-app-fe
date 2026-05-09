@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Package, ArrowLeft } from 'lucide-react';
-import ProductItemManager from '../../_components/product-item-manager';
+import ProductItemManager from './_components/product-item-manager';
 import { getProductById, getProductItems } from './actions'; 
 
 export default async function ProductItemsPage({
