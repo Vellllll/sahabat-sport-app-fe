@@ -4,6 +4,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Tag, ArrowUpDown, ShoppingBag, ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 
 interface Category {
   id: string | number;
@@ -147,50 +148,51 @@ export default function ProductStorefront({ initialProducts, categories, current
       <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${isPending ? 'opacity-40 transition-opacity' : ''}`}>
         {initialProducts.length > 0 ? (
           initialProducts.map((product) => (
-            <div 
-              key={product.id} 
-              className="group bg-white rounded-[24px] border border-slate-100/80 overflow-hidden hover:shadow-[0_16px_40px_rgba(0,0,0,0.04)] hover:border-slate-200/60 transition-all flex flex-col h-full"
-            >
-              {/* Product Image Preview - Menampilkan lowest_pic_url */}
-              <div className="relative aspect-square w-full bg-slate-50 overflow-hidden flex items-center justify-center border-b border-slate-50 shrink-0">
-                {product.lowest_pic_url ? (
-                  <img 
-                    src={product.lowest_pic_url} 
-                    alt={product.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                ) : (
-                  <ImageIcon className="h-8 w-8 text-slate-200" />
-                )}
-                
-                {/* Floating Category Badge */}
-                <span className="absolute top-3 left-3 text-[9px] font-black bg-white/90 backdrop-blur-sm text-slate-800 px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
-                  {product.product_category?.name || 'Sport'}
-                </span>
-              </div>
-
-              {/* Product Info - Menampilkan lowest_price */}
-              <div className="p-4 flex flex-col flex-1 justify-between gap-3">
-                <div>
-                  <h3 className="text-xs md:text-sm font-bold text-slate-700 group-hover:text-[#165dfc] transition-colors line-clamp-2 leading-snug tracking-tight">
-                    {product.name}
-                  </h3>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    {product.lowest_price !== null && <span className="text-[10px] font-bold text-slate-400 uppercase">Mulai</span>}
-                    <p className="text-sm md:text-base font-black text-slate-900">
-                      {formatRupiah(product.lowest_price)}
-                    </p>
-                  </div>
-                </div>
-
-                <button 
-                  className="w-full bg-slate-50 text-slate-700 group-hover:bg-[#165dfc] group-hover:text-white py-2.5 rounded-xl text-[11px] font-bold tracking-wider transition-all flex items-center justify-center gap-2 uppercase"
-                >
-                  <ShoppingBag className="h-3.5 w-3.5" /> Beli Sekarang
-                </button>
-              </div>
-
+            <Link
+            key={product.id}
+            href={`/product/${product.id}`}
+            className="group bg-white rounded-[24px] border border-slate-100/80 overflow-hidden hover:shadow-[0_16px_40px_rgba(0,0,0,0.04)] hover:border-slate-200/60 transition-all flex flex-col h-full cursor-pointer"
+          >
+            {/* Product Image Showcase */}
+            <div className="relative aspect-square w-full bg-slate-50 overflow-hidden flex items-center justify-center border-b border-slate-50 shrink-0">
+              {product.lowest_pic_url ? (
+                <img 
+                  src={product.lowest_pic_url} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              ) : (
+                <ImageIcon className="h-8 w-8 text-slate-200" />
+              )}
+              
+              {/* Tag Kategori Melayang */}
+              <span className="absolute top-3 left-3 text-[9px] font-black bg-white/90 backdrop-blur-sm text-slate-800 px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
+                {product.product_category?.name || 'Sport'}
+              </span>
             </div>
+
+            {/* Product Info Description */}
+            <div className="p-4 flex flex-col flex-1 justify-between gap-3">
+              <div>
+                <h3 className="text-xs md:text-sm font-bold text-slate-700 group-hover:text-[#165dfc] transition-colors line-clamp-2 leading-snug tracking-tight">
+                  {product.name}
+                </h3>
+                <div className="flex items-baseline gap-1 mt-1">
+                  {product.lowest_price !== null && <span className="text-[10px] font-bold text-slate-400 uppercase">Mulai</span>}
+                  <p className="text-sm md:text-base font-black text-slate-900">
+                    {formatRupiah(product.lowest_price)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tombol Aksi Visual */}
+              <div 
+                className="w-full bg-slate-50 text-slate-700 group-hover:bg-[#165dfc] group-hover:text-white py-2.5 rounded-xl text-[11px] font-bold tracking-wider transition-all flex items-center justify-center gap-2 uppercase"
+              >
+                <ShoppingBag className="h-3.5 w-3.5" /> Lihat Detail
+              </div>
+            </div>
+          </Link>
           ))
         ) : (
           <div className="col-span-full text-center py-24 bg-white rounded-[32px] border border-dashed border-slate-100">

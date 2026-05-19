@@ -1,5 +1,7 @@
 // app/_api/storefront.ts
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export interface FetchProductsParams {
   name?: string;
@@ -49,6 +51,11 @@ export async function getPublicProducts(filters: FetchProductsParams) {
       headers,
       next: { revalidate: 0 } // Sesuaikan cache sesuai kebutuhan bisnismu
     });
+
+    // BRUTAL CHECK: Jika API mengembalikan 401 Unauthorized
+    if (res.status === 401) {
+      redirect('/login');
+    }
     
     if (!res.ok) throw new Error('Failed to fetch product list');
     
@@ -59,6 +66,9 @@ export async function getPublicProducts(filters: FetchProductsParams) {
       totalItems: json.totalItems ?? 0
     };
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
     console.error("Storefront fetch error:", error);
     return { products: [], totalPages: 1, totalItems: 0 };
   }
