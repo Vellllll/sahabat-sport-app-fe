@@ -50,5 +50,5 @@ export async function authenticate(prevState: any, formData: FormData) {
   }
 
   // 4. Redirect ke dashboard
-  redirect('/dashboard')
+  redirect('/')
 }
