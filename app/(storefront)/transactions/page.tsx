@@ -7,9 +7,7 @@ import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { TransactionTable } from './_components/transaction-table';
 import { TransactionFilterBar } from './_components/transaction-filter-bar';
 import { TransactionPagination } from './_components/transaction-pagination';
-import { Transaction } from '@/lib/types/transactions';
-
-const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
+import { ApiResponseTransactions, getUserTransactions, type FetchTransactionsParams } from '@/lib/api/transactions';
 
 interface SearchParams {
   q?: string;
@@ -19,67 +17,68 @@ interface SearchParams {
   page?: string;
 }
 
-async function getUserTransactions(sp: SearchParams): Promise<{ data: Transaction[]; totalPages: number }> {
+export default async function TransactionsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const sp = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get("session_token")?.value;
 
   if (!token) redirect('/login');
 
-  // Menyusun query string ke backend berdasarkan Search Params URL Next.js
-  const query = new URLSearchParams({
-    page: sp.page || '1',
-    limit: '10',
-    ...(sp.q && { transactionNumber: sp.q }),
-    ...(sp.startDate && { startDate: sp.startDate }),
-    ...(sp.endDate && { endDate: sp.endDate }),
-    ...(sp.fulfillment && sp.fulfillment !== 'ALL' && { fulfillmentStatus: sp.fulfillment }),
-  });
+  const convertToEpoch = (dateString: string | undefined, isEndOfDay: boolean): string | undefined => {
+    if (!dateString) return undefined;
+    
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return undefined;
+
+    if (isEndOfDay) {
+      date.setHours(23, 59, 59, 999); // Set ke akhir hari
+    } else {
+      date.setHours(0, 0, 0, 0); // Set ke awal hari
+    }
+
+    // Math.floor mengubah milidetik menjadi detik (Epoch)
+    console.log(Math.floor(date.getTime() / 1000).toString())
+    return Math.floor(date.getTime() / 1000).toString();
+  };
+
+  // Mapping state URL ke parameter API asli Backend Anda
+  const apiParams: FetchTransactionsParams = {
+    page: Number(sp.page) || 1,
+    per_page: 10,
+    transaction_number: sp.q || undefined,
+    from_created_time: convertToEpoch(sp.startDate, false), 
+    to_created_time: convertToEpoch(sp.endDate, true),
+    is_ready: sp.fulfillment === 'READY' ? true : sp.fulfillment === 'NOT_READY' ? false : undefined
+  };
+
+  let transactionsData: ApiResponseTransactions = { 
+    data: [], 
+    currentPage: 1,
+    perPage: 10,
+    totalPages: 1, 
+    totalItems: 0 
+  };
 
   try {
-    const res = await fetch(`${API_URL}/user/transactions?${query.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      next: { revalidate: 0 }
-    });
-
-    if (res.status === 401) redirect('/login');
-    if (!res.ok) return { data: [], totalPages: 1 };
-
-    const json = await res.json();
-    return {
-      data: json.data ?? [],
-      totalPages: json.totalPages ?? 1
-    };
+    transactionsData = await getUserTransactions(token, apiParams);
   } catch (error) {
+    if (error instanceof Error && error.message === 'UNAUTHORIZED') redirect('/login');
     if (isRedirectError(error)) throw error;
-    console.error("Fetch transactions error:", error);
-    return { data: [], totalPages: 1 };
+    console.error(error);
   }
-}
-
-export default async function TransactionsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const sp = await searchParams;
-  const { data: transactions, totalPages } = await getUserTransactions(sp);
-  const currentPage = Number(sp.page) || 1;
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* EDITORIAL PAGE HEADER */}
         <div className="space-y-2 pb-6 border-b border-slate-100">
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
-            Riwayat Transaksi
-          </h1>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">Riwayat Transaksi</h1>
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
             Pantau status pembayaran dan kesiapan unit pesanan Anda
           </p>
         </div>
 
-        {/* 1. COMPONENT FILTER BAR */}
+        {/* Filter Bar */}
         <TransactionFilterBar currentFilters={{
           q: sp.q || '',
           startDate: sp.startDate || '',
@@ -87,23 +86,21 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           fulfillment: sp.fulfillment || 'ALL'
         }} />
 
-        {/* 2. DATA TABLE VIEWPORT WITH SUSPENSE KEY */}
+        {/* Viewport Tabel */}
         <Suspense key={JSON.stringify(sp)} fallback={<TableSkeleton />}>
-          {transactions.length > 0 ? (
+          {transactionsData.data.length > 0 ? (
             <div className="space-y-8">
-              <TransactionTable initialTransactions={transactions} />
-              
-              {/* 3. COMPONENT PAGINATION */}
-              {totalPages > 1 && (
-                <TransactionPagination currentPage={currentPage} totalPages={totalPages} />
+              <TransactionTable initialTransactions={transactionsData.data} />
+              {transactionsData.totalPages > 1 && (
+                <TransactionPagination currentPage={apiParams.page} totalPages={transactionsData.totalPages} />
               )}
             </div>
           ) : (
             <div className="text-center py-24 border border-dashed border-slate-200 rounded-[24px]">
               <ShoppingBag className="h-10 w-10 text-slate-300 mx-auto mb-4" />
               <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Data Tidak Ditemukan</h3>
-              <p className="text-xs text-slate-400 font-medium max-w-[280px] mx-auto mt-1 leading-relaxed">
-                Tidak ada transaksi yang cocok dengan parameter filter pencarian Anda.
+              <p className="text-xs text-slate-400 font-medium max-w-[280px] mx-auto mt-1">
+                Tidak ada riwayat transaksi yang cocok dengan filter Anda.
               </p>
             </div>
           )}
@@ -118,9 +115,7 @@ function TableSkeleton() {
   return (
     <div className="space-y-4 w-full animate-pulse pt-4">
       <div className="h-10 bg-slate-100 rounded-lg w-full" />
-      {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-16 bg-slate-50 rounded-xl w-full" />
-      ))}
+      {[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-slate-50 rounded-xl w-full" />)}
     </div>
   );
 }
