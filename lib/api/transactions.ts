@@ -41,13 +41,17 @@ export interface TransactionDetailItem {
     product_item: ProductItemDetail;
 }
 
+// lib/api/storefront.ts
+
 export interface ApiResponseTransactionDetail {
     number: string;
-    created_at: number; // Unix timestamp dalam detik
+    created_at: number;
     is_paid: boolean;
     is_ready: boolean;
+    is_requested: boolean; // ✅ Tambahan key status request
+    requested_at: number | null; // ✅ Unix timestamp (detik) atau null jika belum di-request
     items: TransactionDetailItem[];
-}
+  }
 
 const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
