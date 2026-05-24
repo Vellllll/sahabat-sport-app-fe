@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Receipt, ShoppingBag, CreditCard, Clock } from 'lucide-react';
+import { ArrowLeft, Receipt, ShoppingBag, CreditCard, Clock, ArrowRight } from 'lucide-react';
 import { getTransactionDetail } from '@/lib/api/transactions';
 import { PreparationRequestButton } from './_components/preparation-request-button'; // ✅ IMPORT TOMBOL BARU
 
@@ -106,16 +106,28 @@ export default async function TransactionDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Kanan: Tombol Request (Hanya dirender jika barang belum siap) */}
-            {!detail.is_ready && (
-              <div className="w-full md:w-auto shrink-0">
+            {/* Kanan: ORKESTRASI TOMBOL AKSI BERDASARKAN STATE */}
+            <div className="w-full md:w-auto shrink-0">
+              {detail.is_ready ? (
+                /* ✅ KONDISI A: JIKA BARANG SUDAH SIAP */
+                /* Dan pastikan dia memang BELUM BAYAR (!detail.is_paid) */
+                !detail.is_paid && (
+                  <Link
+                    href={`/checkout/${id}`} // Arahkan ke rute/halaman pembayaran Anda
+                    className="inline-flex items-center justify-center gap-2 h-11 px-6 bg-[#165dfc] hover:bg-[#124ecb] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#165dfc]/10 active:scale-[0.99] w-full md:w-auto text-center"
+                  >
+                    <CreditCard className="h-4 w-4" /> Bayar Sekarang <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                )
+              ) : (
+                /* ✅ KONDISI B: JIKA BARANG BELUM SIAP (Gunakan tombol request yang kemarin) */
                 <PreparationRequestButton 
                   transactionId={id} 
                   isRequested={detail.is_requested}
                   requestedAtStr={detail.requested_at ? formatFullDate(detail.requested_at) : null}
                 />
-              </div>
-            )}
+              )}
+            </div>
 
           </div>
         </div>
