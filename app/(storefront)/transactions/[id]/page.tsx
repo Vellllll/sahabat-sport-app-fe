@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ArrowLeft, Receipt, ShoppingBag, CreditCard, Clock, ArrowRight } from 'lucide-react';
 import { getTransactionDetail } from '@/lib/api/transactions';
 import { PreparationRequestButton } from './_components/preparation-request-button'; // ✅ IMPORT TOMBOL BARU
+import { PaymentProofModal } from './_components/payment-proof-modal';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -55,31 +56,30 @@ export default async function TransactionDetailPage({ params }: Props) {
         {/* NAVIGASI BACK & HEADER EDITORIAL */}
         {/* ================= REFACTOR TOTAL HEADER AREA ================= */}
         <div className="space-y-6 pb-8 border-b border-slate-100">
-          
+
           {/* Back Button */}
-          <Link 
-            href="/transactions" 
+          <Link
+            href="/transactions"
             className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-800 transition-colors group cursor-pointer"
           >
             <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" /> Kembali ke Riwayat
           </Link>
-          
+
           {/* Main Grid: Info Nota & Action Button */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            
+
             {/* Kiri: Nomor Nota & Rentetan Status Linier */}
             <div className="space-y-3">
               <h1 className="text-2xl font-black tracking-tight text-slate-900 flex items-center gap-2">
                 <Receipt className="h-6 w-6 text-[#165dfc]" /> {detail.number}
               </h1>
-              
+
               {/* STATUS FLOW BARIS HORIZONTAL (PREMIUM WORKFLOW LOOK) */}
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                
+
                 {/* 1. Status Pembayaran */}
-                <span className={`px-2 py-0.5 rounded-md font-black ${
-                  detail.is_paid ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-md font-black ${detail.is_paid ? 'text-emerald-600 bg-emerald-50' : 'text-amber-600 bg-amber-50'
+                  }`}>
                   {detail.is_paid ? 'Lunas' : 'Belum Bayar'}
                 </span>
 
@@ -89,9 +89,8 @@ export default async function TransactionDetailPage({ params }: Props) {
                 {/* 2. Status Kesiapan Barang */}
                 <div className="flex items-center gap-1.5 text-slate-500">
                   <span>Kesiapan:</span>
-                  <span className={`font-black ${
-                    detail.is_ready ? 'text-indigo-600' : 'text-blue-500'
-                  }`}>
+                  <span className={`font-black ${detail.is_ready ? 'text-indigo-600' : 'text-blue-500'
+                    }`}>
                     {detail.is_ready ? 'Siap Diambil' : 'Sedang Diproses'}
                   </span>
                 </div>
@@ -106,23 +105,29 @@ export default async function TransactionDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Kanan: ORKESTRASI TOMBOL AKSI BERDASARKAN STATE */}
-            <div className="w-full md:w-auto shrink-0">
-              {detail.is_ready ? (
-                /* ✅ KONDISI A: JIKA BARANG SUDAH SIAP */
-                /* Dan pastikan dia memang BELUM BAYAR (!detail.is_paid) */
-                !detail.is_paid && (
-                  <Link
-                    href={`/checkout/${id}`} // Arahkan ke rute/halaman pembayaran Anda
-                    className="inline-flex items-center justify-center gap-2 h-11 px-6 bg-[#165dfc] hover:bg-[#124ecb] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#165dfc]/10 active:scale-[0.99] w-full md:w-auto text-center"
-                  >
-                    <CreditCard className="h-4 w-4" /> Bayar Sekarang <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+            {/* ORKESTRASI TOMBOL AKSI BERDASARKAN STATE */}
+            <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row gap-3">
+              {detail.is_paid ? (
+                /* JIKA SUDAH LUNAS & MEMILIKI FILE BUKTI */
+                detail.pic_proof_of_transfer_url && (
+                  /* ✅ REFACTOR: Masukkan property transactionId={id} ke modal */
+                  <PaymentProofModal
+                    transactionId={id}
+                    fileName={detail.pic_proof_of_transfer_url}
+                  />
                 )
+              ) : detail.is_ready ? (
+                /* JIKA BARANG SIAP TAPI BELUM BAYAR */
+                <Link
+                  href={`/checkout/${id}`}
+                  className="inline-flex items-center justify-center gap-2 h-11 px-6 bg-[#165dfc] hover:bg-[#124ecb] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#165dfc]/10 active:scale-[0.99] w-full md:w-auto text-center"
+                >
+                  <CreditCard className="h-4 w-4" /> Bayar Sekarang <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               ) : (
-                /* ✅ KONDISI B: JIKA BARANG BELUM SIAP (Gunakan tombol request yang kemarin) */
-                <PreparationRequestButton 
-                  transactionId={id} 
+                /* JIKA BARANG BELUM SIAP */
+                <PreparationRequestButton
+                  transactionId={id}
                   isRequested={detail.is_requested}
                   requestedAtStr={detail.requested_at ? formatFullDate(detail.requested_at) : null}
                 />

@@ -44,6 +44,7 @@ export interface TransactionDetailItem {
 // lib/api/storefront.ts
 
 export interface ApiResponseTransactionDetail {
+    pic_proof_of_transfer_url: string;
     number: string;
     created_at: number;
     is_paid: boolean;
@@ -51,7 +52,7 @@ export interface ApiResponseTransactionDetail {
     is_requested: boolean; // ✅ Tambahan key status request
     requested_at: number | null; // ✅ Unix timestamp (detik) atau null jika belum di-request
     items: TransactionDetailItem[];
-  }
+}
 
 const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
@@ -110,4 +111,32 @@ export async function getTransactionDetail(token: string, id: string): Promise<A
 
     const json = await res.json();
     return json.result ?? null;
+}
+
+// lib/api/storefront.ts
+
+export interface BankAccountItem {
+    name: string;      // Nama pemilik rekening (Atas Nama)
+    number: string;    // Nomor Rekening
+    bank_name: string; // Nama Bank (BCA, Mandiri, dll)
+}
+
+// Fungsi Fetch List Bank Akun Resmi Toko
+export async function getActiveBankAccounts(token: string): Promise<BankAccountItem[]> {
+    // Menyusun query parameter is_displayed=true sesuai kontrak API Anda
+    const query = new URLSearchParams({ is_displayed: 'true' });
+
+    const res = await fetch(`${API_URL}/accounts?${query.toString()}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+        },
+        next: { revalidate: 3600 } // Cache selama 1 jam karena data rekening jarang berubah mendadak
+    });
+
+    if (!res.ok) return [];
+
+    const json = await res.json();
+    return json.result ?? [];
 }
