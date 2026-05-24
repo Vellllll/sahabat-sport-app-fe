@@ -84,7 +84,6 @@ export function Navbar({ initialLoginStatus }: NavbarProps) {
 const routes = [
   { href: "/", label: "Home" },
   { href: "/shop-profile", label: "Profile" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/transactions", label: "Riwayat Transaksi" },
   { href: "/admin", label: "Admin" },
-  { href: "/transactions", label: "Riwayat Transaksi" }
 ];

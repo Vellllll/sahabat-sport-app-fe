@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Receipt, ShoppingBag, CreditCard, Clock, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Receipt, ShoppingBag, CreditCard, Clock, ArrowRight, MessageSquare } from 'lucide-react';
 import { getTransactionDetail } from '@/lib/api/transactions';
 import { PreparationRequestButton } from './_components/preparation-request-button'; // ✅ IMPORT TOMBOL BARU
 import { PaymentProofModal } from './_components/payment-proof-modal';
@@ -48,6 +48,12 @@ export default async function TransactionDetailPage({ params }: Props) {
   };
 
   const grandTotal = detail.items.reduce((acc, item) => acc + (item.count * Number(item.product_item.price)), 0);
+
+  const whatsappAdminNumber = "628164889344"; // Ganti dengan nomor WhatsApp resmi toko Anda
+  const chatMessage = encodeURIComponent(
+    `Halo Admin Sahabat Sport, saya ingin bertanya terkait pesanan saya dengan Nomor Transaksi: ${detail.number}.`
+  );
+  const whatsappUrl = `https://wa.me/${whatsappAdminNumber}?text=${chatMessage}`;
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-white py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in slide-in-from-bottom-3 duration-500">
@@ -106,26 +112,32 @@ export default async function TransactionDetailPage({ params }: Props) {
             </div>
 
             {/* ORKESTRASI TOMBOL AKSI BERDASARKAN STATE */}
-            <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row gap-3">
+            {/* AREA REFACTOR: GRUP TOMBOL AKSI SEJAJAR */}
+            <div className="w-full md:w-auto shrink-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+
+              {/* ✅ REFACTOR: TOMBOL CHAT ADMIN DENGAN AKSEN HIJAU EMERALD PREMIUM */}
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 h-11 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all text-center shadow-md shadow-emerald-600/10 border-none cursor-pointer"
+              >
+                <MessageSquare className="h-4 w-4 text-emerald-100/80" /> Chat Admin
+              </a>
+
+              {/* TOMBOL UTAMA BERDASARKAN STATUS LOGIK (Tetap sama seperti sebelumnya) */}
               {detail.is_paid ? (
-                /* JIKA SUDAH LUNAS & MEMILIKI FILE BUKTI */
                 detail.pic_proof_of_transfer_url && (
-                  /* ✅ REFACTOR: Masukkan property transactionId={id} ke modal */
-                  <PaymentProofModal
-                    transactionId={id}
-                    fileName={detail.pic_proof_of_transfer_url}
-                  />
+                  <PaymentProofModal transactionId={id} fileName={detail.pic_proof_of_transfer_url} />
                 )
               ) : detail.is_ready ? (
-                /* JIKA BARANG SIAP TAPI BELUM BAYAR */
                 <Link
                   href={`/checkout/${id}`}
-                  className="inline-flex items-center justify-center gap-2 h-11 px-6 bg-[#165dfc] hover:bg-[#124ecb] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#165dfc]/10 active:scale-[0.99] w-full md:w-auto text-center"
+                  className="inline-flex items-center justify-center gap-2 h-11 px-6 bg-[#165dfc] hover:bg-[#124ecb] text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md shadow-[#165dfc]/10 active:scale-[0.99] text-center"
                 >
                   <CreditCard className="h-4 w-4" /> Bayar Sekarang <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               ) : (
-                /* JIKA BARANG BELUM SIAP */
                 <PreparationRequestButton
                   transactionId={id}
                   isRequested={detail.is_requested}

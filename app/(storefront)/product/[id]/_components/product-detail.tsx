@@ -1,7 +1,11 @@
+// app/product/[id]/_components/product-detail.tsx
 'use client';
 
-import { useState } from 'react';
-import { ShoppingCart, Check, ShieldCheck, Truck, RotateCcw, ImageIcon } from 'lucide-react';
+import { useState, useTransition } from 'react'; // ✅ Tambah useTransition
+import { useRouter } from 'next/navigation';     // ✅ Tambah useRouter untuk navigasi login
+import { ShoppingCart, Check, ShieldCheck, Truck, RotateCcw, ImageIcon, Loader2 } from 'lucide-react'; // ✅ Tambah Loader2
+import { toast } from 'sonner';                  // ✅ Tambah toast
+import { addToCartAction } from '../actions'; // ✅ Import Server Action yang kita buat
 
 interface VariantItem {
   id: number;
@@ -14,8 +18,8 @@ interface VariantItem {
 interface ProductDetailData {
   id: number;
   name: string;
-  product_category_name: string; // Sesuai JSON baru kamu
-  items: VariantItem[];          // Sesuai JSON baru kamu
+  product_category_name: string;
+  items: VariantItem[];
 }
 
 interface Props {
@@ -23,12 +27,13 @@ interface Props {
 }
 
 export default function ProductDetail({ productData }: Props) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition(); // ✅ State loading transisi Server Action
+  
   const { name: productName, product_category_name, items: rawVariants } = productData;
 
-  // Urutkan varian dari yang termurah untuk opsi default
   const sortedVariants = [...(rawVariants || [])].sort((a, b) => a.price - b.price);
   
-  // State varian aktif (default: varian termurah)
   const [selectedVariant, setSelectedVariant] = useState<VariantItem | null>(sortedVariants[0] || null);
   const [quantity, setQuantity] = useState(1);
 
@@ -36,7 +41,27 @@ export default function ProductDetail({ productData }: Props) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
   };
 
-  // Prioritaskan gambar varian terpilih, jika tidak ada gunakan fallback varian pertama
+  // ✅ FUNGSI INTERAKSI INTEGRASI API BACKEND
+  const handleAddToCart = () => {
+    if (!selectedVariant) return;
+
+    startTransition(async () => {
+      // Mengirimkan data dinamis: ID Varian terpilih & jumlah qty dari state
+      const result = await addToCartAction(selectedVariant.id, quantity);
+
+      if (!result.success) {
+        toast.error(result.error);
+        if (result.requireLogin) {
+          router.push('/login'); // Lempar ke halaman login jika token habis/belum login
+        }
+        return;
+      }
+
+      // Notifikasi Sukses Premium
+      toast.success(`${quantity}x ${selectedVariant.name} berhasil dimasukkan ke keranjang belanja!`);
+    });
+  };
+
   const displayImage = selectedVariant?.pic_url || sortedVariants[0]?.pic_url || null;
 
   return (
@@ -69,7 +94,6 @@ export default function ProductDetail({ productData }: Props) {
               {productName}
             </h1>
 
-            {/* Dinamis Harga Berdasarkan Varian */}
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50 inline-block w-full">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Harga Varian Terpilih</p>
               <p className="text-3xl font-black text-[#165dfc]">
@@ -104,12 +128,12 @@ export default function ProductDetail({ productData }: Props) {
                     <button
                       key={variant.id}
                       type="button"
-                      disabled={!isAvailable}
+                      disabled={!isAvailable || isPending} // ✅ Kunci tombol saat sedang memproses
                       onClick={() => {
                         setSelectedVariant(variant);
-                        setQuantity(1); // Reset qty ke 1 tiap ganti varian
+                        setQuantity(1);
                       }}
-                      className={`px-4 py-3 rounded-xl font-bold text-xs tracking-wide border transition-all flex items-center gap-1.5 uppercase
+                      className={`px-4 py-3 rounded-xl font-bold text-xs tracking-wide border transition-all flex items-center gap-1.5 uppercase cursor-pointer
                         ${isSelected 
                           ? 'bg-[#165dfc] border-[#165dfc] text-white shadow-md shadow-[#165dfc]/10' 
                           : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'}
@@ -132,8 +156,8 @@ export default function ProductDetail({ productData }: Props) {
                 <button 
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  disabled={quantity <= 1 || !selectedVariant || selectedVariant.stock === 0}
-                  className="w-10 h-10 font-bold text-slate-600 hover:bg-white rounded-lg transition-colors text-sm disabled:opacity-30"
+                  disabled={quantity <= 1 || !selectedVariant || selectedVariant.stock === 0 || isPending} // ✅ Tambah proteksi isPending
+                  className="w-10 h-10 font-bold text-slate-600 hover:bg-white rounded-lg transition-colors text-sm disabled:opacity-30 cursor-pointer"
                 >
                   -
                 </button>
@@ -141,19 +165,29 @@ export default function ProductDetail({ productData }: Props) {
                 <button 
                   type="button"
                   onClick={() => setQuantity(q => q + 1)}
-                  disabled={!selectedVariant || quantity >= selectedVariant.stock}
-                  className="w-10 h-10 font-bold text-slate-600 hover:bg-white rounded-lg transition-colors text-sm disabled:opacity-30"
+                  disabled={!selectedVariant || quantity >= selectedVariant.stock || isPending} // ✅ Tambah proteksi isPending
+                  className="w-10 h-10 font-bold text-slate-600 hover:bg-white rounded-lg transition-colors text-sm disabled:opacity-30 cursor-pointer"
                 >
                   +
                 </button>
               </div>
 
+              {/* ✅ INTEGRASI INTEGRAL: Tombol Aksi terhubung ke handleAddToCart */}
               <button
                 type="button"
-                disabled={!selectedVariant || selectedVariant.stock === 0}
-                className="flex-1 bg-[#165dfc] text-white py-4 px-6 rounded-2xl font-black text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none uppercase flex items-center justify-center gap-3"
+                onClick={handleAddToCart}
+                disabled={!selectedVariant || selectedVariant.stock === 0 || isPending}
+                className="flex-1 bg-[#165dfc] text-white py-4 px-6 rounded-2xl font-black text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none uppercase flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed"
               >
-                <ShoppingCart className="h-4 w-4" /> Tambah Ke Keranjang
+                {isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="h-4 w-4" /> Tambah Ke Keranjang
+                  </>
+                )}
               </button>
             </div>
 
