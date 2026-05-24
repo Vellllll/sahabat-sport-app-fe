@@ -25,7 +25,7 @@ export function Cart() {
     // saat user menekan tombol "Tambah ke Keranjang" di halaman detail produk.
     
     // Contoh dummy penanda kuantitas item aktif di tas belanja
-    setCartCount(2); 
+    setCartCount(0); 
   }, [pathname]);
 
   return (
@@ -52,12 +52,12 @@ export function Cart() {
         Cart
       </span>
 
-      {/* ✅ BADGE NOTIFIKASI DINAMIS QUANTITY */}
+      {/* ✅ BADGE NOTIFIKASI DINAMIS QUANTITY
       {cartCount > 0 && (
         <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-[#165dfc] text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-in zoom-in duration-300">
           {cartCount}
         </span>
-      )}
+      )} */}
     </Link>
   );
 }
