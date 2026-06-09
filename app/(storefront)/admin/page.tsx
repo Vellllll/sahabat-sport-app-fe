@@ -14,17 +14,13 @@ export default async function AdminHubPage() {
   // Ambil data untuk tab pertama (Penyiapan) sebagai initial data dari server
   const initialRequestedData = await getAdminTransactionsByFilter(token, { 
     is_requested: true,
-    is_ready: false,
-    is_paid: false,
-    is_sent: false
   }).catch(() => []);
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
-      <div className="max-w-[1000px] mx-auto space-y-10">
+      <div className="max-w-[1200px] mx-auto space-y-10">
         <AdminHubHero />
         
-        {/* Alirkan data yang sudah terfilter ketat ke client component */}
         <TransactionAdminWorkspace 
           token={token} 
           initialRequested={initialRequestedData} 

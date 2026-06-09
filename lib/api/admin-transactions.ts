@@ -23,7 +23,7 @@ export interface AdminTransactionItem {
 // 1. Fetch seluruh transaksi masuk
 export async function getAdminTransactionsByFilter(
   token: string,
-  filters: { is_requested?: boolean; is_ready?: boolean; is_paid?: boolean; is_sent?: boolean }
+  filters: { is_requested?: boolean; is_ready?: boolean; is_paid?: boolean; is_sent?: boolean, is_rejected?: boolean }
 ): Promise<AdminTransactionItem[]> {
   const queryParams = new URLSearchParams();
 
@@ -31,6 +31,7 @@ export async function getAdminTransactionsByFilter(
   if (filters.is_ready !== undefined) queryParams.append('is_ready', String(filters.is_ready));
   if (filters.is_paid !== undefined) queryParams.append('is_paid', String(filters.is_paid));
   if (filters.is_sent !== undefined) queryParams.append('is_sent', String(filters.is_sent));
+  if (filters.is_rejected !== undefined) queryParams.append('is_rejected', String(filters.is_rejected));
 
   const res = await fetch(`${API_URL}/transactions/admin?${queryParams.toString()}`, {
     method: 'GET',
@@ -143,5 +144,62 @@ export async function readyTransactionAction(transactionId: number) {
   } catch (error) {
     console.error("Ready transaction error:", error);
     return { success: false, error: 'Terjadi gangguan koneksi ke server.' };
+  }
+}
+
+export async function shipTransactionAction(transactionId: number) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+  if (!token) return { success: false, error: 'Sesi Anda telah berakhir.' };
+
+  try {
+    // Sesuaikan endpoint penyelesaian/pengiriman barang dari backend NestJS Anda
+    const res = await fetch(`${API_URL}/transactions/admin/${transactionId}/ship`, {
+      method: 'POST', 
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const json = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return { 
+        success: false, 
+        error: json.message || 'Gagal mengubah status transaksi menjadi terkirim.' 
+      };
+    }
+
+    revalidatePath('/admin');
+    return { success: true };
+  } catch (error) {
+    console.error("Ship transaction error:", error);
+    return { success: false, error: 'Terjadi gangguan koneksi ke server.' };
+  }
+}
+
+export async function rejectTransactionAction(id: number) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("session_token")?.value;
+  if (!token) return { success: false, error: 'Sesi Anda telah berakhir.' };
+  
+  try {
+    // Sesuaikan API_URL dengan environment variabel proyek Anda
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/transactions/admin/${id}/reject`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const json = await res.json();
+    if (!res.ok) {
+      return { success: false, error: json.message || 'Gagal mereject transaksi.' };
+    }
+    return { success: true, data: json.result };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'Terjadi kesalahan koneksi server.' };
   }
 }
