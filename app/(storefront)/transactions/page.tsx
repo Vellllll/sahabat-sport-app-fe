@@ -26,7 +26,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
   const convertToEpoch = (dateString: string | undefined, isEndOfDay: boolean): string | undefined => {
     if (!dateString) return undefined;
-    
+
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return undefined;
 
@@ -46,17 +46,17 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     page: Number(sp.page) || 1,
     per_page: 10,
     transaction_number: sp.q || undefined,
-    from_created_time: convertToEpoch(sp.startDate, false), 
+    from_created_time: convertToEpoch(sp.startDate, false),
     to_created_time: convertToEpoch(sp.endDate, true),
     is_ready: sp.fulfillment === 'READY' ? true : sp.fulfillment === 'NOT_READY' ? false : undefined
   };
 
-  let transactionsData: ApiResponseTransactions = { 
-    data: [], 
+  let transactionsData: ApiResponseTransactions = {
+    data: [],
     currentPage: 1,
     perPage: 10,
-    totalPages: 1, 
-    totalItems: 0 
+    totalPages: 1,
+    totalItems: 0
   };
 
   try {
@@ -70,7 +70,7 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto space-y-8">
-        
+
         <div className="space-y-2 pb-6 border-b border-slate-100">
           <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">Riwayat Transaksi</h1>
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">

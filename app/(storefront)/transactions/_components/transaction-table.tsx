@@ -31,7 +31,7 @@ export function TransactionTable({ initialTransactions }: { initialTransactions:
               <th className="pb-4"><span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" /> Tanggal</span></th>
               <th className="pb-4"><span className="flex items-center gap-1.5"><DollarSign className="h-3.5 w-3.5" /> Total</span></th>
               <th className="pb-4"><span className="flex items-center gap-1.5"><CreditCard className="h-3.5 w-3.5" /> Pembayaran</span></th>
-              <th className="pb-4"><span className="flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Kesiapan Barang</span></th>
+              <th className="pb-4"><span className="flex items-center gap-1.5"><Package className="h-3.5 w-3.5" /> Status Pesanan</span></th>
               <th className="pb-4 pr-2 text-right">Aksi</th>
             </tr>
           </thead>
@@ -48,9 +48,23 @@ export function TransactionTable({ initialTransactions }: { initialTransactions:
                   </span>
                 </td>
                 <td className="py-5">
-                  <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border rounded-md ${tx.is_ready ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
-                    {tx.is_ready ? 'Siap Diambil' : 'Diproses'}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {!tx.is_rejected && !tx.is_sent && (
+                      <span className={`px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border rounded-md ${tx.is_ready ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                        {tx.is_ready ? 'Siap Diambil' : 'Diproses'}
+                      </span>
+                    )}
+                    {tx.is_sent && (
+                      <span className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border rounded-md bg-purple-50 text-purple-700 border-purple-100">
+                        Terkirim
+                      </span>
+                    )}
+                    {tx.is_rejected && (
+                      <span className="px-2.5 py-1 text-[9px] font-black uppercase tracking-wider border rounded-md bg-red-50 text-red-700 border-red-100">
+                        Tereject
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="py-5 pr-2 text-right">
                   <Link href={`/transactions/${tx.id}`} className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#165dfc] transition-all hover:gap-2 cursor-pointer">
@@ -83,10 +97,24 @@ export function TransactionTable({ initialTransactions }: { initialTransactions:
                 </span>
               </div>
               <div className="space-y-1 flex-1 min-w-[120px]">
-                <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest">Kesiapan Barang</span>
-                <span className={`inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border rounded-md ${tx.is_ready ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
-                  {tx.is_ready ? 'Siap Diambil' : 'Diproses'}
-                </span>
+                <span className="block text-[8px] font-black text-slate-400 uppercase tracking-widest">Status Pesanan</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {!tx.is_rejected && !tx.is_sent && (
+                    <span className={`inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border rounded-md ${tx.is_ready ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
+                      {tx.is_ready ? 'Siap Diambil' : 'Diproses'}
+                    </span>
+                  )}
+                  {tx.is_sent && (
+                    <span className="inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border rounded-md bg-purple-50 text-purple-700 border-purple-100">
+                      Terkirim
+                    </span>
+                  )}
+                  {tx.is_rejected && (
+                    <span className="inline-block px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border rounded-md bg-red-50 text-red-700 border-red-100">
+                      Tereject
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

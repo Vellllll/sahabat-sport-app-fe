@@ -6,6 +6,9 @@ export interface TransactionItem {
     total_amount: number;
     is_paid: boolean;
     is_ready: boolean;
+    is_sent: boolean;
+    is_rejected: boolean;
+    is_requested: boolean;
     created_at: number; // Unix Timestamp dalam detik (contoh: 1779009201)
 }
 
@@ -44,6 +47,8 @@ export interface TransactionDetailItem {
 // lib/api/storefront.ts
 
 export interface ApiResponseTransactionDetail {
+    is_sent: boolean;
+    is_rejected: boolean;
     pic_proof_of_transfer_url: string;
     number: string;
     created_at: number;

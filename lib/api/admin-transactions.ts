@@ -179,20 +179,26 @@ export async function shipTransactionAction(transactionId: number) {
   }
 }
 
-export async function rejectTransactionAction(id: number) {
+export async function rejectTransactionAction(id: number, note: string) {
   const cookieStore = await cookies();
   const token = cookieStore.get("session_token")?.value;
   if (!token) return { success: false, error: 'Sesi Anda telah berakhir.' };
-  
+
   try {
-    // Sesuaikan API_URL dengan environment variabel proyek Anda
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/transactions/admin/${id}/reject`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const queryParams = new URLSearchParams();
+    if (note) queryParams.append('note', note);
+
+    // ✅ Mengirimkan catatan melalui query parameter "?note=..."
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || ''}/transactions/admin/${id}/reject?${queryParams.toString()}`, 
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
 
     const json = await res.json();
     if (!res.ok) {
