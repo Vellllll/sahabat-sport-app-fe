@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Cart } from "./cart";
-import { LogIn, LogOut, ChevronDown, BarChart3, Package, ChevronRight } from "lucide-react";
+import { LogIn, LogOut, ChevronDown, BarChart3, Package, ChevronRight, LayoutDashboard } from "lucide-react";
 import { logoutAction } from "./auth-actions";
 
 interface NavbarProps {
@@ -19,7 +19,7 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   
-  // 🟢 State untuk mengontrol visibilitas dropdown report
+  // State manajemen kontrol menu dropdown reports
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -32,7 +32,7 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
     });
   };
 
-  // 🟢 Menutup dropdown otomatis ketika pengguna mengklik di luar area dropdown
+  // Menutup dropdown otomatis ketika pengguna mengklik di luar area menu
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -43,12 +43,11 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🟢 Menutup dropdown otomatis setiap kali rute halaman berubah
+  // Menutup dropdown otomatis setiap kali rute halaman berubah
   useEffect(() => {
     setIsDropdownOpen(false);
   }, [pathname]);
 
-  // Periksa apakah rute saat ini berada di bawah rute laporan/reports
   const isReportRouteActive = pathname.startsWith("/admin/reports");
 
   return (
@@ -63,7 +62,7 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
           </Link>
           
           <div className="hidden md:flex items-center gap-1">
-            {/* RUTE REGULER */}
+            {/* LINK NAVIGASI STANDARD */}
             {routes
               .filter((route) => (!route.isAdminOnly || showAdminLink))
               .map((route) => {
@@ -83,13 +82,13 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
                 );
               })}
 
-            {/* 🟢 REPORT DROPDOWN TAB (MURNI HANYA UNTUK ADMIN) */}
+            {/* TAB REPORTS DROPDOWN INDEPENDEN (KHUSUS ROLE ADMIN) */}
             {showAdminLink && (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                   className={cn(
-                    "text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer select-none",
+                    "text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer select-none relative",
                     isReportRouteActive ? "text-[#165dfc]" : "text-slate-500 hover:text-slate-900"
                   )}
                 >
@@ -98,11 +97,11 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
                   {isReportRouteActive && <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#165dfc] rounded-full" />}
                 </button>
 
-                {/* isi panel menu dropdown */}
+                {/* Dropdown Menu List Container */}
                 {isDropdownOpen && (
                   <div className="absolute left-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                     
-                    {/* Sub-menu 1: Laporan Transaksi */}
+                    {/* Sub-menu: Transaction Reports */}
                     <Link
                       href="/admin/reports/transactions"
                       className={cn(
@@ -119,7 +118,7 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
                       <ChevronRight className="h-3 w-3 opacity-40" />
                     </Link>
 
-                    {/* Sub-menu 2: Laporan Produk */}
+                    {/* Sub-menu: Product Reports */}
                     <Link
                       href="/admin/reports/products"
                       className={cn(
@@ -173,10 +172,12 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
   );
 }
 
-// ✅ LISTING RUTE UTAMA YANG DI-SLIM (Menu Laporan telah dipindah ke dalam internal dropdown)
+// ✅ REFACTOR MASTER ARRAY ROUTING UNTUK MENAMPILKAN DASHBOARD UTAMA ADMIN
 const routes = [
   { href: "/", label: "Home", isAdminOnly: false },
   { href: "/shop-profile", label: "Profile", isAdminOnly: false },
   { href: "/transactions", label: "Riwayat Transaksi", isAdminOnly: false },
-  { href: "/admin", label: "Admin Workspace", isAdminOnly: true },
+  // 🟢 Ditambahkan rute dashboard statistik utama dengan penanda ikon Workspace
+  { href: "/admin/dashboard", label: "Dashboard", isAdminOnly: true },
+  { href: "/admin", label: "Catalog Admin", isAdminOnly: true },
 ];

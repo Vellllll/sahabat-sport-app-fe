@@ -85,7 +85,7 @@ export default async function AdminProductSalesReportPage({ searchParams }: Page
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-10">
+      <div className="mx-auto space-y-10">
         
         {/* HEADER UTAMA REPORT */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/60">
