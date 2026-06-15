@@ -1,17 +1,19 @@
 // app/admin/products/page.tsx
 import { getProducts } from '@/lib/products/api';
-import { getCategories } from '@/lib/api'; // Pastikan fungsi getCategories di-import
+import { getCategories } from '@/lib/api';
 import ProductListOptimized from './_components/product-list';
-import Link from 'next/link';
-import { Plus, Package } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { Suspense } from 'react';
 import AddProductModal from './_components/add-product-modal';
+import { requirePermission } from '@/lib/rbac/guards';
 
 export default async function ProductsPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; page?: string; limit?: string; categoryId?: string }>;
 }) {
+  await requirePermission('products:manage');
+
   const params = await searchParams;
   const query = params.q || '';
   const currentPage = Number(params.page) || 1;

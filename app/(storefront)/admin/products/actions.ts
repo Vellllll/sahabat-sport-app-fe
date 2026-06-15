@@ -5,6 +5,7 @@ import { ProductSchema } from '@/lib/schema';
 import { UpdateProductSchema } from '@/lib/products/schema';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { serverApiFetch } from '@/lib/server-api';
+import { ensurePermission } from '@/lib/rbac/guards';
 
 export interface ProductFormState {
   message: string | null;
@@ -25,6 +26,9 @@ export async function getCategories() {
 
 // --- ACTION: CREATE PRODUCT ---
 export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+  const access = await ensurePermission('products:manage');
+  if (!access.ok) return { message: access.error };
+
   const validatedFields = ProductSchema.safeParse({
     name: formData.get('name'),
     product_category_id: formData.get('product_category_id'),
@@ -55,6 +59,9 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
 
 // --- ACTION: UPDATE PRODUCT ---
 export async function updateProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
+  const access = await ensurePermission('products:manage');
+  if (!access.ok) return { message: access.error };
+
   const validatedFields = UpdateProductSchema.safeParse({
     id: formData.get('id'),
     name: formData.get('name'),
@@ -86,6 +93,9 @@ export async function updateProduct(prevState: ProductFormState, formData: FormD
 }
 
 export async function deleteProduct(id: string) {
+  const access = await ensurePermission('products:manage');
+  if (!access.ok) return { success: false, message: access.error };
+
   try {
     await serverApiFetch(`/products/${id}`, {
       method: 'DELETE',

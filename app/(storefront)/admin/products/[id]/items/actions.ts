@@ -8,6 +8,7 @@ import {
 } from "@/lib/products/server-api";
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { serverApiFetch } from '@/lib/server-api';
+import { ensurePermission } from '@/lib/rbac/guards';
 
 export async function getProductItems(page: number = 1, limit: number = 10, productId: number = 0, isDisplayed: boolean | null = null) {
     return getProductItemsFromApi(page, limit, productId, isDisplayed);
@@ -41,6 +42,9 @@ export async function createProductItem(
     _prevState: ProductItemFormState,
     formData: FormData
 ): Promise<ProductItemFormState> {
+    const access = await ensurePermission('products:manage');
+    if (!access.ok) return { success: false, message: access.error, timestamp: Date.now() };
+
     const validated = ProductItemSchema.safeParse({
         product_id: formData.get('product_id'),
         name: formData.get('name'),
@@ -74,6 +78,9 @@ export async function updateProductItem(
     _prevState: ProductItemFormState,
     formData: FormData
 ): Promise<ProductItemFormState> {
+    const access = await ensurePermission('products:manage');
+    if (!access.ok) return { success: false, message: access.error, timestamp: Date.now() };
+
     const id = formData.get('id');
     const validated = ProductItemSchema.safeParse({
         product_id: formData.get('product_id'),
@@ -107,6 +114,9 @@ export async function deleteProductItem(
     productId: number,
     itemId: string
 ): Promise<ProductItemFormState> {
+    const access = await ensurePermission('products:manage');
+    if (!access.ok) return { success: false, message: access.error, timestamp: Date.now() };
+
     try {
         await serverApiFetch(`/product-items/${itemId}`, {
             method: 'DELETE',

@@ -1,15 +1,15 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getRequiredPermissionForPath, hasPermission } from '@/lib/rbac/permissions';
+import { decodeJwtPayload } from '@/lib/rbac/jwt';
+import type { UserRole } from '@/lib/rbac/types';
 
 function isTokenExpired(token: string): boolean {
   try {
-    const arrayToken = token.split('.');
-    if (arrayToken.length !== 3) return true;
-    
-    const payload = JSON.parse(Buffer.from(arrayToken[1], 'base64').toString());
-    if (!payload.exp) return false;
-    
+    const payload = decodeJwtPayload(token);
+    if (!payload?.exp) return false;
+
     const now = Math.floor(Date.now() / 1000);
     return payload.exp < now;
   } catch {
@@ -17,32 +17,53 @@ function isTokenExpired(token: string): boolean {
   }
 }
 
+function getRoleFromRequest(request: NextRequest): UserRole | null {
+  const token = request.cookies.get('session_token')?.value;
+  if (token) {
+    const role = decodeJwtPayload(token)?.role;
+    if (role) return role;
+  }
+
+  const userData = request.cookies.get('user_data')?.value;
+  if (!userData) return null;
+
+  try {
+    const user = JSON.parse(userData) as { role?: UserRole | null };
+    return user.role ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('session_token')?.value;
   const { pathname } = request.nextUrl;
 
-  // Tentukan rute mana saja yang butuh proteksi ketat (misal halaman admin atau checkout)
   const isProtectedPath = pathname.startsWith('/admin') || pathname.startsWith('/checkout');
 
   if (isProtectedPath) {
     if (!token || isTokenExpired(token)) {
-      // Jika token tidak ada atau sudah mati, redirect ke login
       const loginUrl = new URL('/login', request.url);
-      
-      // Buat response redirect
       const response = NextResponse.redirect(loginUrl);
-      
-      // Hapus cookie yang kedaluwarsa dari browser lewat header response
       response.cookies.delete('session_token');
-      
+      response.cookies.delete('user_data');
       return response;
+    }
+
+    if (pathname.startsWith('/admin')) {
+      const requiredPermission = getRequiredPermissionForPath(pathname);
+      const role = getRoleFromRequest(request);
+
+      if (requiredPermission && !hasPermission(role, requiredPermission)) {
+        const homeUrl = new URL('/?error=unauthorized', request.url);
+        return NextResponse.redirect(homeUrl);
+      }
     }
   }
 
   return NextResponse.next();
 }
 
-// Konfigurasi agar middleware tidak mengecek file statis/assets
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

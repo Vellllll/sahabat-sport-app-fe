@@ -1,26 +1,23 @@
 // app/(storefront)/layout.tsx
-import { cookies } from "next/headers";
-import { Navbar } from "../_components/navbar"; // Sesuaikan path komponen Anda
+import { Navbar } from "../_components/navbar";
 import AutoLogout from "../_components/auto-logout";
-import { isTokenExpired } from "@/lib/auth";
 import { Toaster } from 'sonner';
+import { getOptionalSession } from '@/lib/rbac/guards';
+import { canAccessAdmin } from '@/lib/rbac/permissions';
 
 export default async function StorefrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-  const isLoggedIn = !!token && !isTokenExpired(token);
+  const session = await getOptionalSession();
+  const isLoggedIn = !!session;
+  const showAdminLink = canAccessAdmin(session?.user.role);
 
   return (
     <>
-      {/* Sistem proteksi berkala berjalan di latar belakang */}
       <AutoLogout isLoggedIn={isLoggedIn} />
-      
-      {/* Navigasi Premium hanya muncul di sini */}
-      <Navbar initialLoginStatus={isLoggedIn} />
+      <Navbar initialLoginStatus={isLoggedIn} showAdminLink={showAdminLink} />
       
       {children}
 

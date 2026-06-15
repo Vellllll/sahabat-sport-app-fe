@@ -1,15 +1,17 @@
 // app/admin/categories/page.tsx
-import { getAllCategories, getCategories } from '@/lib/api';
+import { getAllCategories } from '@/lib/api';
 import CategoryListOptimized from './_components/category-list';
 import AddCategoryModal from './add-category-modal';
 import { Suspense } from 'react';
+import { requirePermission } from '@/lib/rbac/guards';
 
 export default async function CategoriesPage({
     searchParams,
 }: {
     searchParams: Promise<{ q?: string; page?: string; limit?: string }>;
 }) {
-    // FIX UTAMA: Kamu harus await searchParams dulu!
+    await requirePermission('categories:manage');
+
     const params = await searchParams;
     const query = params.q || '';
     const currentPage = Number(params.page) || 1;

@@ -1,8 +1,8 @@
 // lib/api/admin-transactions.ts
 'use server';
 
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { ensurePermission } from '@/lib/rbac/guards';
 
 const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
@@ -49,9 +49,10 @@ export async function getAdminTransactionsByFilter(
 
 // 2. Action set lunas pembayaran manual
 export async function verifyAdminPayment(transactionId: number) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-  if (!token) return { success: false, error: 'Sesi berakhir' };
+  const access = await ensurePermission('transactions:manage');
+  if (!access.ok) return { success: false, error: access.error };
+
+  const token = access.session.token;
 
   try {
     // Sesuaikan endpoint bayar/konfirmasi manual dari backend Anda
@@ -115,9 +116,10 @@ export async function getAdminTransactionDetail(token: string, transactionId: nu
 }
 
 export async function readyTransactionAction(transactionId: number) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-  if (!token) return { success: false, error: 'Sesi Anda telah berakhir.' };
+  const access = await ensurePermission('transactions:manage');
+  if (!access.ok) return { success: false, error: access.error };
+
+  const token = access.session.token;
 
   try {
     const res = await fetch(`${API_URL}/transactions/admin/${transactionId}/ready`, {
@@ -148,9 +150,10 @@ export async function readyTransactionAction(transactionId: number) {
 }
 
 export async function shipTransactionAction(transactionId: number) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-  if (!token) return { success: false, error: 'Sesi Anda telah berakhir.' };
+  const access = await ensurePermission('transactions:manage');
+  if (!access.ok) return { success: false, error: access.error };
+
+  const token = access.session.token;
 
   try {
     // Sesuaikan endpoint penyelesaian/pengiriman barang dari backend NestJS Anda
@@ -180,9 +183,10 @@ export async function shipTransactionAction(transactionId: number) {
 }
 
 export async function rejectTransactionAction(id: number, note: string) {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-  if (!token) return { success: false, error: 'Sesi Anda telah berakhir.' };
+  const access = await ensurePermission('transactions:manage');
+  if (!access.ok) return { success: false, error: access.error };
+
+  const token = access.session.token;
 
   try {
     const queryParams = new URLSearchParams();

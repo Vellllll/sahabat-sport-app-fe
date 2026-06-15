@@ -2,7 +2,13 @@
 import Link from 'next/link';
 import { Layers, Package, LayoutDashboard, ArrowUpRight } from 'lucide-react';
 
-export function AdminHubHero() {
+export function AdminHubHero({
+  canManageProducts,
+  canManageCategories,
+}: {
+  canManageProducts: boolean;
+  canManageCategories: boolean;
+}) {
   return (
     <div className="space-y-8">
       <div>
@@ -14,7 +20,9 @@ export function AdminHubHero() {
         </p>
       </div>
 
+      {(canManageCategories || canManageProducts) && (
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {canManageCategories && (
         <Link 
           href="/admin/categories"
           className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer"
@@ -30,7 +38,9 @@ export function AdminHubHero() {
           </div>
           <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
         </Link>
+        )}
 
+        {canManageProducts && (
         <Link 
           href="/admin/products"
           className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer"
@@ -46,7 +56,9 @@ export function AdminHubHero() {
           </div>
           <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
         </Link>
+        )}
       </div>
+      )}
     </div>
   );
 }

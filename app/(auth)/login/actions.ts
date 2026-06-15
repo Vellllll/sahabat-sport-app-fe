@@ -37,11 +37,13 @@ export async function authenticate(prevState: any, formData: FormData) {
       maxAge: 60 * 60 * 24 * 7, // 7 Hari
     })
 
-    // Jika API kamu mengembalikan data user, simpan untuk UI
-    if (data.user) {
-      cookieStore.set('user_data', JSON.stringify(data.user), { 
+    if (data.data?.user) {
+      cookieStore.set('user_data', JSON.stringify(data.data.user), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
         path: '/',
-        maxAge: 60 * 60 * 24 * 7 
+        maxAge: 60 * 60 * 24 * 7,
       })
     }
 

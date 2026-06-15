@@ -6,8 +6,12 @@ import z from 'zod';
 import { serverApiFetch } from '@/lib/server-api';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { revalidateTag } from 'next/cache';
+import { ensurePermission } from '@/lib/rbac/guards';
 
 export async function createCategory(prevState: CategoryFormState, formData: FormData): Promise<CategoryFormState> {
+  const access = await ensurePermission('categories:manage');
+  if (!access.ok) return { message: access.error, errors: {} };
+
   const validatedFields = CategorySchema.safeParse({
     name: formData.get('name'),
   });
@@ -48,6 +52,9 @@ const UpdateCategorySchema = z.object({
 
 // --- ACTION: UPDATE KATEGORI ---
 export async function updateCategory(prevState: FormState, formData: FormData): Promise<FormState> {
+  const access = await ensurePermission('categories:manage');
+  if (!access.ok) return { message: access.error, errors: {} };
+
   const validatedFields = UpdateCategorySchema.safeParse({
     id: formData.get('id'),
     name: formData.get('name'),
@@ -78,6 +85,9 @@ export async function updateCategory(prevState: FormState, formData: FormData): 
 
 // --- ACTION: DELETE KATEGORI ---
 export async function deleteCategory(id: string) {
+  const access = await ensurePermission('categories:manage');
+  if (!access.ok) return { success: false, message: access.error };
+
   try {
     await serverApiFetch(`/product-categories/${id}`, {
       method: 'DELETE',

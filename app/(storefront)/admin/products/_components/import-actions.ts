@@ -1,9 +1,9 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { revalidatePath, revalidateTag } from 'next/cache';
 import { serverApiFetch } from '@/lib/server-api';
 import { CACHE_TAGS } from '@/lib/cache-tags';
+import { ensurePermission } from '@/lib/rbac/guards';
 import z from 'zod';
 
 const BulkProductRowSchema = z.object({
@@ -15,10 +15,8 @@ const BulkProductRowSchema = z.object({
 export async function importProductsAction(
     parsedRows: Array<{ name: string; product_category_name: string; is_displayed: boolean }>
 ) {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("session_token")?.value;
-
-    if (!token) return { success: false, error: 'Sesi Anda telah berakhir. Silakan login kembali.' };
+    const access = await ensurePermission('products:manage');
+    if (!access.ok) return { success: false, error: access.error };
 
     // 1. Validasi Keamanan Lapis Pertama Sisi Server (Type Safety Check)
     const validatedProducts = [];
@@ -26,10 +24,10 @@ export async function importProductsAction(
         const result = BulkProductRowSchema.safeParse(row);
         if (!result.success) {
             // Log error validasi di terminal server agar tahu baris mana yang gagal
-            console.error(`[VALIDASI GAGAL] Baris ${index + 1}:`, result.error.errors);
+            console.error(`[VALIDASI GAGAL] Baris ${index + 1}:`, result.error.issues);
             return {
                 success: false,
-                error: `Baris ke-${index + 1}: Data tidak valid (${result.error.errors[0].message}).`
+                error: `Baris ke-${index + 1}: Data tidak valid (${result.error.issues[0]?.message ?? 'Data tidak valid'}).`
             };
         }
         validatedProducts.push(result.data);

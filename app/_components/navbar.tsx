@@ -10,10 +10,11 @@ import { LogIn, LogOut } from "lucide-react";
 import { logoutAction } from "./auth-actions";
 
 interface NavbarProps {
-  initialLoginStatus: boolean; // Terima data dari layout.tsx
+  initialLoginStatus: boolean;
+  showAdminLink?: boolean;
 }
 
-export function Navbar({ initialLoginStatus }: NavbarProps) {
+export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -38,7 +39,9 @@ export function Navbar({ initialLoginStatus }: NavbarProps) {
             Sahabat<span className="text-[#165dfc]">Sport</span>
           </Link>
           <div className="hidden md:flex items-center gap-1">
-            {routes.map((route) => {
+            {routes
+              .filter((route) => route.href !== '/admin' || showAdminLink)
+              .map((route) => {
               const isActive = route.href === "/" ? pathname === "/" : pathname.startsWith(route.href);
               return (
                 <Link key={route.href} href={route.href} className={cn("text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl relative", isActive ? "text-[#165dfc]" : "text-slate-500 hover:text-slate-900")}>

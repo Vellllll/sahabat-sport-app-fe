@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Package, ArrowLeft } from 'lucide-react';
 import ProductItemManager from './_components/product-item-manager';
-import { getProductById, getProductItems } from './actions'; 
+import { getProductById, getProductItems } from './actions';
+import { requirePermission } from '@/lib/rbac/guards';
 
 export default async function ProductItemsPage({
   params,
@@ -10,6 +11,8 @@ export default async function ProductItemsPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ page?: string; limit?: string; isDisplayed?: string }>;
 }) {
+  await requirePermission('products:manage');
+
   const { id } = await params;
   const sp = await searchParams;
 
