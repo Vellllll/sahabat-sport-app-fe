@@ -1,5 +1,7 @@
 // lib/api/storefront.ts
 
+import { serverApiFetch } from "../server-api";
+
 export interface TransactionItem {
     id: number;
     number: string;
@@ -16,9 +18,15 @@ export interface FetchTransactionsParams {
     page: number;
     per_page: number;
     transaction_number?: string;
-    from_created_time?: string;
-    to_created_time?: string;
-    is_ready?: boolean; // Murni Boolean (true / false / undefined)
+
+    // 🟢 SEHARUSNYA NUMBER: Ubah dari string menjadi number/undefined agar cocok dengan DTO NestJS
+    from_created_time?: number;
+    to_created_time?: number;
+
+    is_ready?: boolean;
+    is_requested?: boolean;
+    is_sent?: boolean;
+    is_rejected?: boolean;
 }
 
 export interface ApiResponseTransactions {
@@ -61,43 +69,101 @@ export interface ApiResponseTransactionDetail {
 
 const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
-export async function getUserTransactions(token: string, params: FetchTransactionsParams): Promise<ApiResponseTransactions> {
-
-    // 1. Ambil parameter string terlebih dahulu menggunakan URLSearchParams
-    const queryObj: Record<string, string> = {
-        page: params.page.toString(),
-        per_page: params.per_page.toString(),
-    };
-
-    if (params.transaction_number) queryObj.transaction_number = params.transaction_number;
-    if (params.from_created_time) queryObj.from_created_time = params.from_created_time;
-    if (params.to_created_time) queryObj.to_created_time = params.to_created_time;
-
-    let queryString = new URLSearchParams(queryObj).toString();
-
-    // 2. ✅ PERBAIKAN DI SINI: Inject parameter boolean secara manual tanpa tanda kutip string
-    // Hasil akhir URL akan menjadi: /transactions?page=1&per_page=10&is_ready=true (bukan &is_ready="true")
-    if (params.is_ready) {
-        queryString += `&is_ready=${params.is_ready}`;
+export async function getUserTransactions(
+    token: string, 
+    params: FetchTransactionsParams
+  ): Promise<ApiResponseTransactions> {
+    
+    const query = new URLSearchParams();
+    
+    // 1. Masukkan parameter wajib paginasi
+    query.append('page', params.page.toString());
+    query.append('per_page', params.per_page.toString());
+    
+    // 2. Masukkan nomor nota pencarian jika diinput oleh user
+    if (params.transaction_number) {
+      query.append('transaction_number', params.transaction_number);
     }
-
-    const res = await fetch(`${API_URL}/transactions?${queryString}`, {
+    
+    // 3. Masukkan rentang Unix Timestamp waktu transaksi
+    if (params.from_created_time !== undefined) {
+      query.append('from_created_time', params.from_created_time.toString());
+    }
+    if (params.to_created_time !== undefined) {
+      query.append('to_created_time', params.to_created_time.toString());
+    }
+  
+    // 🟢 KUNCI ALIGNMENT MULTI-FLAG STATUS (SINKRON DTO BACKEND):
+    // Kita cek secara eksplisit kombinasi parameter boolean flag berdasarkan filter yang aktif
+    if (params.is_ready === true) {
+      // 1. Siap Diambil
+      query.append('is_requested', 'true');
+      query.append('is_ready', 'true');
+    //   query.append('is_sent', 'false');
+    //   query.append('is_rejected', 'false');
+    } 
+    else if (params.is_requested === true) {
+      // 2. Sedang Diproses
+      query.append('is_requested', 'true');
+    //   query.append('is_ready', 'false');
+    //   query.append('is_sent', 'false');
+    //   query.append('is_rejected', 'false');
+    } 
+    else if (params.is_sent === true) {
+      // 3. Terkirim
+      query.append('is_requested', 'true');
+      query.append('is_ready', 'true');
+      query.append('is_sent', 'true');
+    //   query.append('is_rejected', 'false');
+    } 
+    else if (params.is_rejected === true) {
+      // 4. Tereject
+      query.append('is_requested', 'true');
+    //   query.append('is_ready', 'false');
+    //   query.append('is_sent', 'false');
+      query.append('is_rejected', 'true');
+    }
+    // Catatan: Jika params.status adalah 'ALL', semua properti di atas akan bernilai undefined
+    // sehingga parameter status tidak akan di-append ke URLSearchParams, memicu @IsOptional() di NestJS.
+  
+    const endpoint = `${API_URL}/transactions?${query.toString()}`;
+  
+    try {
+      console.log(`[Native Fetch] Menembak API Core dengan Saringan Kombinasi: ${endpoint}`);
+  
+      const response = await fetch(endpoint, {
         method: 'GET',
         headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        next: { revalidate: 0 }
-    });
-
-    if (!res.ok) {
-        if (res.status === 401) throw new Error('UNAUTHORIZED');
-        throw new Error('FAILED_FETCH');
+        cache: 'no-store', // Nonaktifkan cache server Next.js agar data selalu reaktif
+      });
+  
+      if (response.status === 401) {
+        throw new Error('UNAUTHORIZED');
+      }
+  
+      if (!response.ok) {
+        throw new Error(`Fetch gagal. Status: ${response.status}`);
+      }
+  
+      const payload = await response.json();
+      
+      return payload.result;
+  
+    } catch (error) {
+      console.error("Gagal mengeksekusi getUserTransactions native fetch:", error);
+      // Kembalikan fallback agar layout storefront tidak pecah jika server offline
+      return {
+        data: [],
+        currentPage: 1,
+        perPage: 10,
+        totalPages: 1,
+        totalItems: 0
+      };
     }
-
-    const json = await res.json();
-    return json.result ?? { data: [], currentPage: 1, perPage: 10, totalPages: 1, totalItems: 0 };
-}
+  }
 
 export async function getTransactionDetail(token: string, id: string): Promise<ApiResponseTransactionDetail | null> {
     const res = await fetch(`${API_URL}/transactions/${id}`, {
