@@ -1,15 +1,26 @@
+// app/(auth)/login/page.tsx
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react' // 🟢 1. IMPORT USEEFFECT
 import { authenticate } from './actions'
 import { SubmitButton } from './_components/submit-button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
+import { toast } from 'sonner' // 🟢 2. IMPORT TOAST SONNER
 
 export default function CustomerLoginPage() {
   const [state, formAction] = useActionState(authenticate, undefined)
+
+  // 🟢 3. MONITOR STATE ERROR SECARA REAKTIF
+  // Ketika server action mengembalikan object state baru yang berisi string error,
+  // panggil toast.error secara instan untuk memunculkan popup premium.
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 animate-in fade-in duration-300">
@@ -71,12 +82,7 @@ export default function CustomerLoginPage() {
                 />
               </div>
 
-              {/* ERROR MESSAGE DYNAMIC ALERT */}
-              {state?.error && (
-                <div className="bg-red-50 text-red-600 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest text-center border border-red-100/50 animate-in zoom-in duration-200">
-                  {state.error}
-                </div>
-              )}
+              {/* 🟢 REFACTOR: Boks Alert Merah Statis di Sini Sudah Dihapus Total */}
 
               {/* ACTION SUBMIT BUTTON */}
               <div className="pt-3">

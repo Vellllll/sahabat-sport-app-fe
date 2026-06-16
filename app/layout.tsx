@@ -1,12 +1,12 @@
 // app/layout.tsx
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Inter, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/cart-context";
+import { Toaster } from 'sonner';
 
-// 1. Inisialisasi Font
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter', // Buat variabel CSS untuk Inter
+  variable: '--font-inter',
 });
 
 const geistSans = Geist({
@@ -31,16 +31,27 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      {/* 2. Suntikkan class font ke body. 
-          Gunakan inter.className sebagai font default global utama aplikasi */}
       <body
         className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased text-slate-600 bg-[#F8FAFC]`}
       >
-        {/* Langsung render children, Next.js otomatis memilih layout grup yang sesuai */}
-        {/* 🟢 Bungkus di sini */}
+        {/* 🟢 Provider & Toaster ditaruh di level global agar aktif di seluruh rute (termasuk Auth) */}
         <CartProvider>
           {children}
         </CartProvider>
+
+        <Toaster 
+          position="bottom-right" 
+          richColors 
+          closeButton
+          theme="light"
+          toastOptions={{
+            style: {
+              borderRadius: '20px',
+              padding: '16px',
+              fontFamily: 'var(--font-inter), sans-serif',
+            },
+          }}
+        />
       </body>
     </html>
   );
