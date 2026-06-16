@@ -65,7 +65,7 @@ export async function authenticate(prevState: any, formData: FormData) {
       return { error: error?.response?.data?.message };
     }
     
-    if (error?.message && error.message.includes('Email/No HP')) {
+    if (error?.message) {
       return { error: error.message };
     }
 
