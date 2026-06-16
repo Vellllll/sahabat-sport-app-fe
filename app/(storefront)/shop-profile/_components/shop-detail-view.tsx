@@ -1,5 +1,5 @@
 // app/(storefront)/shop-profile/_components/shop-detail-view.tsx
-import { Phone, MapPin, Store, Clock, BadgeCheck, Shield } from "lucide-react";
+import { Phone, MapPin, Store, Clock, BadgeCheck, Map } from "lucide-react";
 import { ApiShopProfile } from "@/lib/api/shop-profile";
 
 interface InfoSectionProps {
@@ -10,6 +10,12 @@ interface InfoSectionProps {
 }
 
 export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
+  // 🟢 IMPLEMENTASI DINAMIS: Encode alamat teks agar aman dibaca oleh URL Google Maps
+  const encodedAddress = encodeURIComponent(shop.address || "Jakarta, Indonesia");
+  
+  // Menggunakan URL Embed resmi Google Maps Search Mode agar mencari berdasarkan teks alamat secara real-time
+  const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+
   return (
     <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-3 duration-500">
       
@@ -36,14 +42,38 @@ export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
         </div>
       </div>
 
-      {/* SECTION 2: GRID INFORMASI UTAMA */}
+      {/* SECTION 2: GRID INFORMASI UTAMA & GOOGLE MAPS INTEGRATION */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-        <InfoSection 
-          icon={<MapPin className="h-4 w-4 text-slate-400" />} 
-          label="Lokasi Gudang & Retail" 
-          value={shop.address} 
-        />
         
+        {/* KOLOM KIRI: LOKASI GUDANG & PETA INTEGRASI */}
+        <div className="space-y-6">
+          <InfoSection 
+            icon={<MapPin className="h-4 w-4 text-slate-400" />} 
+            label="Lokasi Gudang & Retail" 
+            value={shop.address} 
+          />
+
+          {/* GOOGLE MAPS PENUNJUK ARAH DINAMIS */}
+          <div className="space-y-2 pt-2">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5">
+              <Map className="h-3.5 w-3.5 text-[#165dfc]" /> Google Maps Penunjuk Arah
+            </h4>
+            <div className="w-full aspect-video rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 shadow-sm relative group">
+              <iframe
+                src={googleMapsEmbedUrl} // 🌟 SINKRON 100%: Otomatis memetakan pin point berdasarkan alamat database
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="w-full h-full object-cover select-none"
+              />
+            </div>
+          </div>
+        </div>
+        
+        {/* KOLOM KANAN: HOTLINE & OPERASIONAL JAM */}
         <div className="space-y-8">
           <InfoSection 
             icon={<Phone className="h-4 w-4 text-slate-400" />} 
@@ -52,7 +82,7 @@ export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
             isLink 
           />
 
-          {/* Jam Operasional Terintegrasi Tanpa Grid Kotak */}
+          {/* Jam Operasional Terintegrasi */}
           <div className="pt-2 space-y-2">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
               <Clock className="h-3.5 w-3.5" /> Jam Operasional
@@ -65,6 +95,7 @@ export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
             </div>
           </div>
         </div>
+
       </div>
 
     </div>
