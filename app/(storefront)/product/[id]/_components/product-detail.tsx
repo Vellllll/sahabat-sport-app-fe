@@ -1,11 +1,12 @@
-// app/product/[id]/_components/product-detail.tsx
+// app/(storefront)/product/[id]/_components/product-detail.tsx
 'use client';
 
-import { useState, useTransition } from 'react'; // ✅ Tambah useTransition
-import { useRouter } from 'next/navigation';     // ✅ Tambah useRouter untuk navigasi login
-import { ShoppingCart, Check, ShieldCheck, Truck, RotateCcw, ImageIcon, Loader2 } from 'lucide-react'; // ✅ Tambah Loader2
-import { toast } from 'sonner';                  // ✅ Tambah toast
-import { addToCartAction } from '../actions'; // ✅ Import Server Action yang kita buat
+import { useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { ShoppingCart, Check, ShieldCheck, Truck, RotateCcw, ImageIcon, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { addToCartAction } from '../actions'; 
+import { useCart } from '@/context/cart-context';
 
 interface VariantItem {
   id: number;
@@ -28,12 +29,11 @@ interface Props {
 
 export default function ProductDetail({ productData }: Props) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition(); // ✅ State loading transisi Server Action
-  
-  const { name: productName, product_category_name, items: rawVariants } = productData;
+  const { addToCart } = useCart(); 
+  const [isPending, startTransition] = useTransition(); 
 
+  const { name: productName, product_category_name, items: rawVariants } = productData;
   const sortedVariants = [...(rawVariants || [])].sort((a, b) => a.price - b.price);
-  
   const [selectedVariant, setSelectedVariant] = useState<VariantItem | null>(sortedVariants[0] || null);
   const [quantity, setQuantity] = useState(1);
 
@@ -41,23 +41,28 @@ export default function ProductDetail({ productData }: Props) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
   };
 
-  // ✅ FUNGSI INTERAKSI INTEGRASI API BACKEND
   const handleAddToCart = () => {
     if (!selectedVariant) return;
 
     startTransition(async () => {
-      // Mengirimkan data dinamis: ID Varian terpilih & jumlah qty dari state
+      // 1. Eksekusi mutasi aman di database NestJS via Server Action
       const result = await addToCartAction(selectedVariant.id, quantity);
 
       if (!result.success) {
         toast.error(result.error);
         if (result.requireLogin) {
-          router.push('/login'); // Lempar ke halaman login jika token habis/belum login
+          router.push('/login'); 
         }
         return;
       }
 
-      // Notifikasi Sukses Premium
+      // 🟢 REFACTOR SINKRONISASI: Alirkan nominal state 'quantity' saat ini ke context client
+      addToCart({
+        id: selectedVariant.id.toString(),
+        name: selectedVariant.name,
+        price: selectedVariant.price,
+      }, quantity); // 🌟 Kirim nilai kuantitas riil di argumen kedua!
+
       toast.success(`${quantity}x ${selectedVariant.name} berhasil dimasukkan ke keranjang belanja!`);
     });
   };
@@ -75,25 +80,24 @@ export default function ProductDetail({ productData }: Props) {
               <img 
                 src={displayImage} 
                 alt={productName} 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102"
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-102" 
               />
             ) : (
               <ImageIcon className="h-12 w-12 text-slate-200" />
             )}
-            
-            <span className="absolute top-4 left-4 text-[10px] font-black bg-[#165dfc] text-white px-3 py-1 rounded-md uppercase tracking-wider shadow-sm">
+            <span className="absolute top-4 left-4 text-[10px] font-black bg-white/90 text-slate-800 px-3 py-1 rounded-md uppercase tracking-wider shadow-sm border border-slate-100">
               {product_category_name || 'Sport'}
             </span>
           </div>
         </div>
 
-        {/* KANAN: DESCRIPTION & VARIANT SELECTOR */}
+        {/* KANAN: DESCRIPTION & SELEKTOR */}
         <div className="flex flex-col justify-between h-full space-y-6 py-2">
           <div className="space-y-4">
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-tight uppercase">
               {productName}
             </h1>
-
+            
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50 inline-block w-full">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Harga Varian Terpilih</p>
               <p className="text-3xl font-black text-[#165dfc]">
@@ -123,12 +127,11 @@ export default function ProductDetail({ productData }: Props) {
                 {sortedVariants.map((variant) => {
                   const isSelected = selectedVariant?.id === variant.id;
                   const isAvailable = variant.stock > 0;
-
                   return (
                     <button
                       key={variant.id}
                       type="button"
-                      disabled={!isAvailable || isPending} // ✅ Kunci tombol saat sedang memproses
+                      disabled={!isAvailable || isPending}
                       onClick={() => {
                         setSelectedVariant(variant);
                         setQuantity(1);
@@ -152,32 +155,34 @@ export default function ProductDetail({ productData }: Props) {
           {/* QUANTITY CONTROL & SUBMIT TO CART */}
           <div className="space-y-4 pt-6 border-t border-slate-100">
             <div className="flex items-center gap-4">
+              
+              {/* INPUT COUNTER MINUS PLUS */}
               <div className="flex items-center bg-slate-100 rounded-xl p-1 border border-slate-200/40">
-                <button 
+                <button
                   type="button"
                   onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                  disabled={quantity <= 1 || !selectedVariant || selectedVariant.stock === 0 || isPending} // ✅ Tambah proteksi isPending
+                  disabled={quantity <= 1 || !selectedVariant || selectedVariant.stock === 0 || isPending}
                   className="w-10 h-10 font-bold text-slate-600 hover:bg-white rounded-lg transition-colors text-sm disabled:opacity-30 cursor-pointer"
                 >
                   -
                 </button>
                 <span className="w-12 text-center font-black text-slate-800 text-sm">{quantity}</span>
-                <button 
+                <button
                   type="button"
                   onClick={() => setQuantity(q => q + 1)}
-                  disabled={!selectedVariant || quantity >= selectedVariant.stock || isPending} // ✅ Tambah proteksi isPending
+                  disabled={!selectedVariant || quantity >= selectedVariant.stock || isPending}
                   className="w-10 h-10 font-bold text-slate-600 hover:bg-white rounded-lg transition-colors text-sm disabled:opacity-30 cursor-pointer"
                 >
                   +
                 </button>
               </div>
 
-              {/* ✅ INTEGRASI INTEGRAL: Tombol Aksi terhubung ke handleAddToCart */}
+              {/* ACTION BUTTON SUBMIT */}
               <button
                 type="button"
                 onClick={handleAddToCart}
                 disabled={!selectedVariant || selectedVariant.stock === 0 || isPending}
-                className="flex-1 bg-[#165dfc] text-white py-4 px-6 rounded-2xl font-black text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none uppercase flex items-center justify-center gap-3 cursor-pointer disabled:cursor-not-allowed"
+                className="flex-1 bg-[#165dfc] text-white py-4 px-6 rounded-2xl font-black text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] hover:shadow-xl active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none uppercase flex items-center justify-center gap-3 cursor-pointer"
               >
                 {isPending ? (
                   <>
@@ -206,8 +211,8 @@ export default function ProductDetail({ productData }: Props) {
                 <span className="text-[9px] font-black text-slate-700 uppercase tracking-tighter">7 Hari Retur</span>
               </div>
             </div>
-          </div>
 
+          </div>
         </div>
 
       </div>

@@ -5,19 +5,22 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingBag, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { addToCartAction } from '../actions'; // Mengarah ke Server Action yang kita buat sebelumnya
+import { addToCartAction } from '../actions'; 
+import { useCart } from '@/context/cart-context'; // 🟢 1. IMPORT HOOK CONTEXT
 
 interface Props {
   productItemId: number;
+  productName?: string; // Tambahkan optional props jika ingin menaruh nama produk secara eksplisit
+  productPrice?: number;
 }
 
-export function AddToCartButton({ productItemId }: Props) {
+export function AddToCartButton({ productItemId, productName = "Item", productPrice = 0 }: Props) {
   const router = useRouter();
+  const { addToCart } = useCart(); // 🟢 2. AMBIL FUNGSI CONTEXT
   const [isPending, startTransition] = useTransition();
 
   const handleAddToCart = () => {
     startTransition(async () => {
-      // Menembak API internal Next.js Server Action
       const result = await addToCartAction(productItemId, 1);
 
       if (!result.success) {
@@ -27,6 +30,13 @@ export function AddToCartButton({ productItemId }: Props) {
         }
         return;
       }
+
+      // 🟢 3. SINKRONKAN STATE: Dorong counter ke navbar browser secara real-time
+      addToCart({
+        id: productItemId.toString(),
+        name: productName,
+        price: productPrice
+      });
 
       toast.success('Varian produk berhasil ditambahkan ke keranjang belanja!');
     });

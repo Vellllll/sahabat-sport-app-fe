@@ -1,13 +1,33 @@
 // app/_components/navbar.tsx
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { appRoutes } from "@/config/routes";
 import { Cart } from "./cart";
-import { LogIn, LogOut, ChevronDown, BarChart3, Package, ChevronRight, LayoutDashboard } from "lucide-react";
 import { logoutAction } from "./auth-actions";
+
+// Menggunakan Shadcn UI Primitives
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+// Menggunakan Lucide Icons secara efisien
+import { 
+  LogIn, 
+  LogOut, 
+  ChevronDown, 
+  BarChart3, 
+  Package, 
+  ChevronRight, 
+  Sparkles 
+} from "lucide-react";
 
 interface NavbarProps {
   initialLoginStatus: boolean;
@@ -18,12 +38,7 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
   const pathname = usePathname();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  
-  // State manajemen kontrol menu dropdown reports
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fungsi Logout menggunakan Server Action
   const handleLogout = () => {
     startTransition(async () => {
       await logoutAction();
@@ -32,82 +47,83 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
     });
   };
 
-  // Menutup dropdown otomatis ketika pengguna mengklik di luar area menu
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const isReportRouteActive = pathname.startsWith("/admin/reports") || pathname.startsWith("/admin/dashboard/ai-report");
 
-  // Menutup dropdown otomatis setiap kali rute halaman berubah
-  useEffect(() => {
-    setIsDropdownOpen(false);
-  }, [pathname]);
-
-  const isReportRouteActive = pathname.startsWith("/admin/reports");
+  // Helper fungsi presisi untuk mendeteksi rute aktif tanpa bug tumpang tindih
+  const checkActiveRoute = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname === href || (pathname.startsWith(href) && href !== "/admin");
+  };
 
   return (
-    <nav className="border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-50">
-      <div className="w-full max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-
-        {/* BRAND & ROUTES */}
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-100 bg-white/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4">
+        
+        {/* BRAND LOGO & CORE ROUTING */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="font-black text-lg text-slate-900 tracking-tight flex items-center gap-2">
-            <span className="bg-[#165dfc] text-white px-2.5 py-1 rounded-xl text-sm font-black">S</span>
+          <Link 
+            href="/" 
+            className="flex items-center gap-2 text-lg font-black tracking-tight text-slate-900 transition-opacity hover:opacity-90"
+          >
+            <span className="rounded-xl bg-[#165dfc] px-2.5 py-1 text-sm font-black text-white">
+              S
+            </span>
             Sahabat<span className="text-[#165dfc]">Sport</span>
           </Link>
-          
+
           <div className="hidden md:flex items-center gap-1">
-            {/* LINK NAVIGASI STANDARD */}
-            {routes
-              .filter((route) => (!route.isAdminOnly || showAdminLink))
+            {/* RENDER DYNAMIC NAVIGATION */}
+            {appRoutes
+              .filter((route) => !route.isAdminOnly || showAdminLink)
               .map((route) => {
-                const isActive = route.href === "/" ? pathname === "/" : pathname.startsWith(route.href);
+                const isActive = checkActiveRoute(route.href);
                 return (
-                  <Link 
-                    key={route.href} 
-                    href={route.href} 
+                  <Link
+                    key={route.href}
+                    href={route.href}
                     className={cn(
-                      "text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl relative transition-colors", 
-                      isActive ? "text-[#165dfc]" : "text-slate-500 hover:text-slate-900")
-                    }
+                      "relative px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors rounded-xl",
+                      isActive ? "text-[#165dfc]" : "text-slate-500 hover:text-slate-900"
+                    )}
                   >
                     {route.label}
-                    {isActive && <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#165dfc] rounded-full" />}
+                    {isActive && (
+                      <span className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-[#165dfc]" />
+                    )}
                   </Link>
                 );
               })}
 
-            {/* TAB REPORTS DROPDOWN INDEPENDEN (KHUSUS ROLE ADMIN) */}
+            {/* SHADCN UI DROPDOWN REPORTS (PURE ADMIN ONLY) */}
             {showAdminLink && (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className={cn(
-                    "text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer select-none relative",
-                    isReportRouteActive ? "text-[#165dfc]" : "text-slate-500 hover:text-slate-900"
-                  )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className={cn(
+                      "relative flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-widest transition-colors rounded-xl outline-none select-none cursor-pointer",
+                      isReportRouteActive ? "text-[#165dfc]" : "text-slate-500 hover:text-slate-900"
+                    )}
+                  >
+                    Reports
+                    <ChevronDown className="h-3.5 w-3.5 transition-transform duration-200 data-[state=open]:rotate-180" />
+                    {isReportRouteActive && (
+                      <span className="absolute bottom-0 left-4 right-4 h-0.5 rounded-full bg-[#165dfc]" />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                
+                <DropdownMenuContent 
+                  align="start" 
+                  sideOffset={8}
+                  className="w-56 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-top-2 duration-150 z-50"
                 >
-                  Reports
-                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", isDropdownOpen && "transform rotate-180")} />
-                  {isReportRouteActive && <span className="absolute bottom-0 left-4 right-4 h-0.5 bg-[#165dfc] rounded-full" />}
-                </button>
-
-                {/* Dropdown Menu List Container */}
-                {isDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-56 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
-                    
-                    {/* Sub-menu: Transaction Reports */}
+                  <DropdownMenuItem asChild>
                     <Link
                       href="/admin/reports/transactions"
                       className={cn(
-                        "flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider transition-colors",
-                        pathname.startsWith("/admin/reports/transactions") 
-                          ? "bg-blue-50 text-[#165dfc]" 
+                        "flex items-center justify-between w-full px-3 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer outline-none",
+                        pathname.startsWith("/admin/reports/transactions")
+                          ? "bg-blue-50 text-[#165dfc]"
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )}
                     >
@@ -117,14 +133,15 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
                       </div>
                       <ChevronRight className="h-3 w-3 opacity-40" />
                     </Link>
+                  </DropdownMenuItem>
 
-                    {/* Sub-menu: Product Reports */}
+                  <DropdownMenuItem asChild>
                     <Link
                       href="/admin/reports/products"
                       className={cn(
-                        "flex items-center justify-between px-4 py-3 text-xs font-bold uppercase tracking-wider transition-colors",
-                        pathname.startsWith("/admin/reports/products") 
-                          ? "bg-blue-50 text-[#165dfc]" 
+                        "flex items-center justify-between w-full px-3 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors cursor-pointer outline-none",
+                        pathname.startsWith("/admin/reports/products")
+                          ? "bg-blue-50 text-[#165dfc]"
                           : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                       )}
                     >
@@ -134,36 +151,66 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
                       </div>
                       <ChevronRight className="h-3 w-3 opacity-40" />
                     </Link>
+                  </DropdownMenuItem>
 
-                  </div>
-                )}
-              </div>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/admin/dashboard/ai-report"
+                      className={cn(
+                        "flex items-center justify-between w-full px-3 py-2.5 text-xs font-bold uppercase tracking-wider rounded-xl transition-colors border-t border-slate-100 cursor-pointer outline-none mt-1 pt-3",
+                        pathname.startsWith("/admin/dashboard/ai-report")
+                          ? "bg-indigo-50 text-indigo-600"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-indigo-600"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="h-4 w-4 shrink-0 text-indigo-400" />
+                        <span>AI Smart Reports</span>
+                      </div>
+                      <ChevronRight className="h-3 w-3 opacity-40" />
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </div>
 
-        {/* UTILITIES & DYNAMIC AUTH BUTTONS */}
+        {/* UTILITIES & AUTH CONTROL SECTIONS */}
         <div className="flex items-center gap-3">
           <Cart />
-          <div className="h-5 w-px bg-slate-200 mx-1 hidden sm:block" />
+          <div className="hidden h-5 w-px bg-slate-200 mx-1 sm:block" />
 
           {initialLoginStatus ? (
-            <button
-              onClick={handleLogout}
+            <Button
+              variant="ghost"
               disabled={isPending}
-              className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors px-4 py-2.5 rounded-xl hover:bg-red-50/60 inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              onClick={handleLogout}
+              className="text-xs font-bold uppercase tracking-widest text-red-500 hover:text-red-600 hover:bg-red-50/60 rounded-xl px-4 py-2.5 h-auto inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <LogOut className="h-3.5 w-3.5" /> {isPending ? "Logging out..." : "Logout"}
-            </button>
+              <LogOut className="h-3.5 w-3.5" /> 
+              {isPending ? "Logging out..." : "Logout"}
+            </Button>
           ) : (
-            <>
-              <Link href="/login" className="text-xs font-bold uppercase tracking-widest text-slate-600 hover:text-[#165dfc] px-4 py-2.5 rounded-xl">
-                <LogIn className="h-3.5 w-3.5" /> Login
-              </Link>
-              <Link href="/register" className="text-xs font-black uppercase tracking-widest bg-[#165dfc] text-white px-5 py-3 rounded-xl">
-                Register
-              </Link>
-            </>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                asChild
+                className="text-xs font-bold uppercase tracking-widest text-slate-600 hover:text-[#165dfc] px-4 py-2.5 h-auto rounded-xl"
+              >
+                <Link href="/login">
+                  <LogIn className="h-3.5 w-3.5 mr-1.5" /> Login
+                </Link>
+              </Button>
+              <Button
+                asChild
+                className="bg-[#165dfc] hover:bg-[#124ecb] text-white text-xs font-black uppercase tracking-widest px-5 py-2.5 h-auto rounded-xl transition-colors shadow-sm"
+              >
+                <Link href="/register">
+                  Register
+                </Link>
+              </Button>
+            </div>
           )}
         </div>
 
@@ -171,13 +218,3 @@ export function Navbar({ initialLoginStatus, showAdminLink = false }: NavbarProp
     </nav>
   );
 }
-
-// ✅ REFACTOR MASTER ARRAY ROUTING UNTUK MENAMPILKAN DASHBOARD UTAMA ADMIN
-const routes = [
-  { href: "/", label: "Home", isAdminOnly: false },
-  { href: "/shop-profile", label: "Profile", isAdminOnly: false },
-  { href: "/transactions", label: "Riwayat Transaksi", isAdminOnly: false },
-  // 🟢 Ditambahkan rute dashboard statistik utama dengan penanda ikon Workspace
-  { href: "/admin/dashboard", label: "Dashboard", isAdminOnly: true },
-  { href: "/admin", label: "Catalog Admin", isAdminOnly: true },
-];

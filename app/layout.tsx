@@ -1,6 +1,7 @@
 // app/layout.tsx
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { CartProvider } from "@/context/cart-context";
 
 // 1. Inisialisasi Font
 const inter = Inter({
@@ -32,11 +33,14 @@ export default function RootLayout({
     <html lang="id">
       {/* 2. Suntikkan class font ke body. 
           Gunakan inter.className sebagai font default global utama aplikasi */}
-      <body 
+      <body
         className={`${inter.className} ${geistSans.variable} ${geistMono.variable} antialiased text-slate-600 bg-[#F8FAFC]`}
       >
         {/* Langsung render children, Next.js otomatis memilih layout grup yang sesuai */}
-        {children}
+        {/* 🟢 Bungkus di sini */}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

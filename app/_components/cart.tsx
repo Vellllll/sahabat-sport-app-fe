@@ -1,4 +1,4 @@
-// app/_components/navbar-cart-button.tsx (Atau sesuaikan path file asli Anda, misal: app/_components/cart.tsx)
+// app/_components/cart.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,27 +6,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-// Interface lokal untuk kalkulasi jumlah badge
-interface CartItemPayload {
-  count: number;
-}
+import { useCart } from "@/context/cart-context"; // 🟢 1. IMPORT HOOK GLOBAL CONTEXT BELANJA
 
 export function Cart() {
   const pathname = usePathname();
+  const { getCartCount } = useCart(); // 🟢 2. AMBIL FUNGSI HITUNG TOTAL ITEM LIVE
   const [cartCount, setCartCount] = useState<number>(0);
 
   // Cek apakah user saat ini sedang berada di halaman cart atau tidak
   const isCartPageActive = pathname === "/cart";
 
+  // 🟢 3. SINKRONKAN STATE SETIAP KALI KERANJANG DI-UPDATE ATAU PINDAH HALAMAN
   useEffect(() => {
-    // 💡 TIPS SENIOR: Di sini Anda bisa menyematkan logic pembacaan real-time 
-    // global state (seperti Zustand atau React Context) untuk menangkap perubahan jumlah item 
-    // saat user menekan tombol "Tambah ke Keranjang" di halaman detail produk.
-    
-    // Contoh dummy penanda kuantitas item aktif di tas belanja
-    setCartCount(0); 
-  }, [pathname]);
+    setCartCount(getCartCount()); 
+  }, [pathname, getCartCount]);
 
   return (
     <Link
@@ -47,17 +40,17 @@ export function Cart() {
         )} 
       />
 
-      {/* Teks Deskripsi Ringkas (Disembunyikan di layar super kecil) */}
+      {/* Teks Deskripsi Ringkas */}
       <span className="text-[11px] font-black uppercase tracking-wider hidden sm:inline-block">
         Cart
       </span>
 
-      {/* ✅ BADGE NOTIFIKASI DINAMIS QUANTITY
+      {/* 🟢 4. AKTIFKAN BADGE NOTIFIKASI: Buka komentar dan tampilkan jika kuantitas > 0 */}
       {cartCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-[#165dfc] text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-in zoom-in duration-300">
+        <span className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm animate-in zoom-in duration-300">
           {cartCount}
         </span>
-      )} */}
+      )}
     </Link>
   );
 }
