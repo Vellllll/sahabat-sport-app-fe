@@ -1,18 +1,27 @@
+// app/(auth)/register/page.tsx
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react' // 🟢 1. TAMBAH EFFECT SINKRONISASI
 import { registerUser } from './actions'
 import { SubmitButton } from '../login/_components/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { ArrowRight, CheckCircle2, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { toast } from 'sonner' // 🟢 2. IMPORT TOAST SONNER
 import { RegisterState } from './types'
 
 export default function RegisterPage() {
   const [state, formAction] = useActionState<RegisterState | undefined, FormData>(registerUser, undefined)
+
+  // 🟢 3. TRIGGER TOAST REAKTIF SAAT ERROR MENCUAT DARI BACKEND
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 animate-in fade-in duration-300">
@@ -38,7 +47,7 @@ export default function RegisterPage() {
         <Card className="border border-slate-100/80 shadow-[0_20px_50px_rgba(0,0,0,0.03)] bg-white rounded-[32px] overflow-hidden">
           <CardContent className="p-8 md:p-10">
 
-            {/* ALERT SUCCESS */}
+            {/* ALERT SUCCESS (Tetap dipertahankan untuk instruksi sukses) */}
             {state?.success && (
               <Alert className="mb-5 border-emerald-100 bg-emerald-50/60 p-4 rounded-2xl">
                 <div className="flex items-start gap-2.5">
@@ -50,17 +59,7 @@ export default function RegisterPage() {
               </Alert>
             )}
 
-            {/* ALERT ERROR */}
-            {state?.error && (
-              <Alert className="mb-5 border-red-100 bg-red-50/60 p-4 rounded-2xl">
-                <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
-                  <AlertDescription className="text-xs font-bold uppercase tracking-wide text-red-700">
-                    {state.error}
-                  </AlertDescription>
-                </div>
-              </Alert>
-            )}
+            {/* 🟢 REFACTOR: Blok <Alert> untuk state?.error di sini sudah dihapus total */}
 
             <form action={formAction} className="space-y-5">
               
