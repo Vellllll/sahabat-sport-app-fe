@@ -133,8 +133,26 @@ export async function deleteCategory(id: string) {
     revalidateTag(CACHE_TAGS.categories, 'max');
     revalidatePath('/admin/categories');
     revalidatePath('/admin/products');
-    return { success: true, message: 'Berhasil dihapus' };
-  } catch (error) {
-    return { success: false, message: 'Gagal menghapus kategori' };
+    return { success: true, message: 'Kategori berhasil dihapus!' };
+  } catch (error: any) {
+    console.error("Delete Category Server Action Error:", error);
+
+    // 🟢 REFACTOR UTAMA: Ekstrak error biner JSON dari NestJS BadRequestException
+    if (error && typeof error.json === 'function') {
+      try {
+        const errorPayload = await error.json();
+        // Menangkap "Kategori tidak dapat dihapus karena masih memiliki produk aktif"
+        if (errorPayload && errorPayload.message) {
+          return { success: false, message: errorPayload.message };
+        }
+      } catch (e) {}
+    }
+
+    if (error?.body?.message) return { success: false, message: error.body.message };
+    if (error?.data?.message) return { success: false, message: error.data.message };
+    if (error?.message) return { success: false, message: error.message };
+
+    // Fallback umum
+    return { success: false, message: 'Gagal menghapus kategori akibat kesalahan jaringan.' };
   }
 }
