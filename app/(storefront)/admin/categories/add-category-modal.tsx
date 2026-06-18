@@ -1,26 +1,37 @@
-// app/admin/categories/add-category-modal.tsx
+// app/(storefront)/admin/categories/add-category-modal.tsx
 'use client';
 
 import { useState, useActionState, useRef, useEffect } from 'react';
 import { createCategory } from './actions';
-import { Plus, X, Loader2, Upload } from 'lucide-react'; // ✅ Import icon Upload
-import ImportCategoryModal from './_components/import-category-modal'; // ✅ Import Modal Baru
+import { Plus, X, Loader2, Upload } from 'lucide-react'; 
+import ImportCategoryModal from './_components/import-category-modal'; 
+import { toast } from 'sonner'; // 🟢 1. IMPORT TOAST SONNER
 
 export default function AddCategoryModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false); // ✅ State Baru untuk mengontrol modal import massal
+  const [isImportOpen, setIsImportOpen] = useState(false); 
   
   const [state, formAction, isPending] = useActionState(createCategory, { errors: {}, message: null });
   const formRef = useRef<HTMLFormElement>(null);
 
+  // 🟢 2. MONITOR REAKSI FEEDBACK VIA SONNER TOAST
   useEffect(() => {
-    if (state.message?.toLowerCase().includes('berhasil')) {
+    if (!state.message) return;
+
+    if (state.message.toLowerCase().includes('berhasil')) {
+      // Tampilkan toast sukses jika pesan mengandung kata 'berhasil'
+      toast.success(state.message);
+      
       const timer = setTimeout(() => {
         setIsOpen(false);
         formRef.current?.reset();
-        state.message = null; 
+        state.message = null; // Reset message setelah modal menutup
       }, 1000);
+      
       return () => clearTimeout(timer);
+    } else {
+      // Tampilkan toast error jika validasi gagal atau gangguan jaringan
+      toast.error(state.message);
     }
   }, [state.message]);
 
@@ -28,7 +39,7 @@ export default function AddCategoryModal() {
     <>
       {/* GRUP AKSI DENGAN INTEGRASI PREMIUM BARU */}
       <div className="flex items-center gap-2">
-        {/* ✅ TOMBOL BARU: MEMBUKA MODAL IMPORT CSV MASSAL */}
+        {/* TOMBOL IMPORT CSV MASSAL */}
         <button 
           onClick={() => setIsImportOpen(true)}
           className="h-10 px-4 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center gap-2 text-xs font-bold hover:bg-slate-50 transition-all cursor-pointer shadow-sm shadow-slate-100"
@@ -36,7 +47,7 @@ export default function AddCategoryModal() {
           <Upload className="h-4 w-4 text-slate-400" /> Import Massal
         </button>
 
-        {/* Tombol Popup Tunggal Asli Anda */}
+        {/* Tombol Popup Tunggal */}
         <button 
           onClick={() => setIsOpen(true)}
           className="w-10 h-10 bg-[#165dfc] text-white rounded-xl flex items-center justify-center shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] transition-all cursor-pointer"
@@ -45,13 +56,13 @@ export default function AddCategoryModal() {
         </button>
       </div>
 
-      {/* ✅ MOUNT COMPONENT IMPORT DI SINI */}
+      {/* MOUNT COMPONENT IMPORT CSV */}
       <ImportCategoryModal 
         isOpen={isImportOpen} 
         onClose={() => setIsImportOpen(false)} 
       />
 
-      {/* Overlay Backdrop Tunggal Tetap Berjalan Normal Di Sini */}
+      {/* Overlay Layout Modal Form */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
@@ -69,11 +80,26 @@ export default function AddCategoryModal() {
               <form ref={formRef} action={formAction} className="space-y-6">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Kategori</label>
-                  <input type="text" name="name" id="name" required placeholder="Contoh: Raket, Sepatu..." className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] rounded-xl outline-none transition-all font-medium text-slate-700" />
+                  <input 
+                    type="text" 
+                    name="name" 
+                    id="name" 
+                    required 
+                    placeholder="Contoh: Raket, Sepatu..." 
+                    className="w-full px-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] rounded-xl outline-none transition-all font-medium text-slate-700" 
+                  />
                   {state.errors?.name && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1">{state.errors.name[0].toUpperCase()}</p>}
                 </div>
-                {state.message && <div className={`text-center py-2 rounded-lg text-[10px] font-bold tracking-widest uppercase ${state.errors && Object.keys(state.errors).length > 0 ? 'text-red-500' : 'text-[#165dfc]'}`}>{state.message}</div>}
-                <button type="submit" disabled={isPending} className="w-full bg-[#165dfc] text-white py-4 rounded-2xl font-bold text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] active:scale-[0.98] transition-all flex items-center justify-center gap-2">{isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'SIMPAN KATEGORI'}</button>
+
+                {/* 🟢 REFACTOR: Boks Alert teks bawaan di bawah ini telah dihapus total */}
+
+                <button 
+                  type="submit" 
+                  disabled={isPending} 
+                  className="w-full bg-[#165dfc] text-white py-4 rounded-2xl font-bold text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'SIMPAN KATEGORI'}
+                </button>
               </form>
             </div>
           </div>

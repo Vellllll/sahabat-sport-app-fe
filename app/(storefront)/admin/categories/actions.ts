@@ -24,17 +24,55 @@ export async function createCategory(prevState: CategoryFormState, formData: For
   }
 
   try {
+    // Eksekusi post ke backend NestJS
     await serverApiFetch('/product-categories/create', {
       method: 'POST',
       body: validatedFields.data,
     });
+    
     revalidateTag(CACHE_TAGS.categories, 'max');
-    revalidatePath('/admin/products'); 
+    revalidatePath('/admin/products');
     revalidatePath('/admin/categories');
-
+    
     return { message: 'Kategori berhasil dibuat!', errors: {} };
-  } catch (error) {
-    return { message: 'Kesalahan jaringan. Gagal menghubungi server.' };
+    
+  } catch (error: any) {
+    console.error("🔥 Debug Error Kategori Di Server Action:", error);
+
+    // 🟢 STRATEGI 1: Jika error adalah Response Fetch (memiliki method .json)
+    if (error && typeof error.json === 'function') {
+      try {
+        const errorPayload = await error.json();
+        if (errorPayload?.message) {
+          return { message: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, errors: {} };
+        }
+      } catch (e) {}
+    }
+
+    // 🟢 STRATEGI 2: Jika serverApiFetch mengekstrak payload ke properti internal (e.g. error.body / error.data)
+    if (error?.body?.message) {
+      return { message: error.body.message, errors: {} };
+    }
+    if (error?.data?.message) {
+      return { message: error.data.message, errors: {} };
+    }
+
+    // 🟢 STRATEGI 3: Jika serverApiFetch melemparkan instansiasi teks string langsung ke error.message
+    if (error?.message) {
+      try {
+        // Cek apakah di dalam string message terdapat raw JSON string stringify
+        const parsedMessage = JSON.parse(error.message);
+        if (parsedMessage?.message) {
+          return { message: parsedMessage.message, errors: {} };
+        }
+      } catch (e) {
+        // Jika error.message berupa teks string biasa ("Nama kategori sudah terdaftar")
+        return { message: error.message, errors: {} };
+      }
+    }
+
+    // Fallback terakhir jika memang mutlak putus koneksi internet / server mati total
+    return { message: 'Kesalahan jaringan. Gagal menghubungi server.', errors: {} };
   }
 }
 
