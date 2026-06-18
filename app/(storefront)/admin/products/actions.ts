@@ -27,7 +27,7 @@ export async function getCategories() {
 // --- ACTION: CREATE PRODUCT ---
 export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
   const access = await ensurePermission('products:manage');
-  if (!access.ok) return { message: access.error };
+  if (!access.ok) return { message: access.error, errors: {} };
 
   const validatedFields = ProductSchema.safeParse({
     name: formData.get('name'),
@@ -38,7 +38,7 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Gagal validasi data.',
+      message: 'Gagal validasi data input.',
     };
   }
 
@@ -51,9 +51,29 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
     revalidateTag(CACHE_TAGS.products, 'max');
     revalidatePath('/admin/products');
     revalidatePath('/admin/categories');
-    return { message: 'Produk berhasil ditambahkan!' };
-  } catch (err) {
-    return { message: 'Gagal menghubungi server.' };
+    return { message: 'Produk berhasil ditambahkan!', errors: {} };
+  } catch (error: any) {
+    console.error("🔥 Create Product Server Action Error:", error);
+
+    // 🟢 REFACTOR UTAMA: Kupas tuntas error payload JSON dari Exception NestJS
+    if (error && typeof error.json === 'function') {
+      try {
+        const errorPayload = await error.json();
+        if (errorPayload?.message) {
+          // Tangkap pesan (bisa berupa string tunggal atau string array dari ValidationPipe)
+          return { 
+            message: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, 
+            errors: {} 
+          };
+        }
+      } catch (e) {}
+    }
+
+    if (error?.body?.message) return { message: error.body.message, errors: {} };
+    if (error?.data?.message) return { message: error.data.message, errors: {} };
+    if (error?.message) return { message: error.message, errors: {} };
+
+    return { message: 'Gagal menghubungi server.', errors: {} };
   }
 }
 

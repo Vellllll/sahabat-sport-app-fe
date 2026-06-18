@@ -1,14 +1,15 @@
-// app/admin/products/_components/add-product-modal.tsx
+// admin/products/_components/add-product-modal.tsx
 "use client";
 
 import { useState, useActionState, useRef, useEffect } from "react";
 import { createProduct } from "../actions";
-import { X, Loader2, Package, Tag, Eye, Plus, Upload } from "lucide-react"; // ✅ Import Icon Upload
-import ImportProductModal from "./import-product-modal"; // ✅ Import Modal Baru
+import { X, Loader2, Package, Tag, Eye, Plus, Upload } from "lucide-react"; 
+import ImportProductModal from "./import-product-modal"; 
+import { toast } from "sonner"; // 🟢 1. IMPORT TOAST SONNER
 
 export default function AddProductModal({ categories }: { categories: any[] }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isImportOpen, setIsImportOpen] = useState(false); // ✅ State Baru untuk mengontrol modal import massal
+  const [isImportOpen, setIsImportOpen] = useState(false); 
 
   const [state, formAction, isPending] = useActionState(createProduct, {
     errors: {},
@@ -16,22 +17,30 @@ export default function AddProductModal({ categories }: { categories: any[] }) {
   });
   const formRef = useRef<HTMLFormElement>(null);
 
+  // 🟢 2. MONITOR FEEDBACK STRUKTUR VIA SONNER TOAST
   useEffect(() => {
-    if (state.message?.toLowerCase().includes("berhasil")) {
+    if (!state.message) return;
+
+    if (state.message.toLowerCase().includes("berhasil")) {
+      toast.success(state.message);
+      
       const timer = setTimeout(() => {
         setIsOpen(false);
         formRef.current?.reset();
-        state.message = "";
+        state.message = ""; // Bersihkan pesan agar tidak terpicu ulang
       }, 1000);
+      
       return () => clearTimeout(timer);
+    } else {
+      // Menampilkan alasan spesifik error validasi dari NestJS/Zod
+      toast.error(state.message);
     }
   }, [state.message]);
 
   return (
     <>
-      {/* ✅ GRUP TOMBOL INTEGRASI AKSI BARU */}
+      {/* GRUP TOMBOL INTEGRASI AKSI */}
       <div className="flex items-center gap-2">
-        {/* ✅ TOMBOL BARU: IMPORT MASAL PRODUK */}
         <button
           onClick={() => setIsImportOpen(true)}
           className="h-10 px-4 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center gap-2 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all cursor-pointer shadow-sm"
@@ -47,7 +56,6 @@ export default function AddProductModal({ categories }: { categories: any[] }) {
         </button>
       </div>
 
-      {/* ✅ MOUNT COMPONENT IMPORT POPUP MODAL DI SINI */}
       <ImportProductModal
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
@@ -67,20 +75,33 @@ export default function AddProductModal({ categories }: { categories: any[] }) {
             </div>
 
             <form ref={formRef} action={formAction} className="space-y-6">
+              {/* Nama Produk */}
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nama Produk</label>
                 <div className="relative">
                   <Package className="absolute left-4 top-3.5 h-4 w-4 text-slate-300" />
-                  <input name="name" required placeholder="Contoh: Sepatu Lari Nike" className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] rounded-xl outline-none transition-all font-medium text-slate-700" />
+                  <input 
+                    name="name" 
+                    required 
+                    disabled={isPending}
+                    placeholder="Contoh: Sepatu Lari Nike" 
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] rounded-xl outline-none transition-all font-medium text-slate-700" 
+                  />
                 </div>
                 {state.errors?.name && <p className="text-red-500 text-[10px] font-bold ml-1">{state.errors.name[0]}</p>}
               </div>
 
+              {/* Kategori */}
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
                 <div className="relative">
                   <Tag className="absolute left-4 top-3.5 h-4 w-4 text-slate-300" />
-                  <select name="product_category_id" required className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] rounded-xl outline-none appearance-none font-medium text-slate-700 cursor-pointer">
+                  <select 
+                    name="product_category_id" 
+                    required 
+                    disabled={isPending}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-transparent focus:bg-white focus:border-[#165dfc] rounded-xl outline-none appearance-none font-medium text-slate-700 cursor-pointer"
+                  >
                     <option value="">Pilih Kategori</option>
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -90,19 +111,27 @@ export default function AddProductModal({ categories }: { categories: any[] }) {
                 {state.errors?.product_category_id && <p className="text-red-500 text-[10px] font-bold ml-1">{state.errors.product_category_id[0]}</p>}
               </div>
 
+              {/* Toggle Switch Tampilkan Toko */}
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <Eye className="h-4 w-4 text-slate-400" />
                   <span className="text-sm font-semibold text-slate-700">Tampilkan di Toko</span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" name="is_displayed" defaultChecked className="sr-only peer" />
+                  <input type="checkbox" name="is_displayed" defaultChecked disabled={isPending} className="sr-only peer" />
                   <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#165dfc]"></div>
                 </label>
               </div>
 
-              {state.message && <div className={`text-center py-2 text-[10px] font-bold uppercase tracking-widest ${state.errors && Object.keys(state.errors).length > 0 ? "text-red-500" : "text-[#165dfc]"}`}>{state.message}</div>}
-              <button type="submit" disabled={isPending} className="w-full bg-[#165dfc] text-white py-4 rounded-2xl font-bold text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] transition-all flex items-center justify-center gap-2">{isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "SIMPAN PRODUK"}</button>
+              {/* 🟢 REFACTOR: Boks Alert teks bawaan di bawah ini sudah dihapus total */}
+
+              <button 
+                type="submit" 
+                disabled={isPending} 
+                className="w-full bg-[#165dfc] text-white py-4 rounded-2xl font-bold text-xs tracking-widest shadow-lg shadow-[#165dfc]/20 hover:bg-[#124ecb] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "SIMPAN PRODUK"}
+              </button>
             </form>
           </div>
         </div>
