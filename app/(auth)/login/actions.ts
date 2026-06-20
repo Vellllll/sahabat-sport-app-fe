@@ -26,12 +26,12 @@ export async function authenticate(prevState: any, formData: FormData) {
     const cookieStore = await cookies()
     
     cookieStore.set('session_token', data.data.token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 Hari
-    })
+      httpOnly: true,                                      // 🔒 Proteksi XSS
+      secure: process.env.NODE_ENV === 'production',       // 🔒 Hanya HTTPS di Production
+      sameSite: 'lax',                                     // 🔒 Proteksi CSRF & Ramah UX Link luar
+      path: '/',                                           // 🌐 Berlaku di seluruh rute aplikasi
+      maxAge: 60 * 60 * 24 * 7,                            // ⏳ Persist selama 7 hari (Browser ditutup tetap aman)
+    });
 
     if (data.data?.user) {
       cookieStore.set('user_data', JSON.stringify(data.data.user), {
