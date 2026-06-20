@@ -3,7 +3,12 @@
 import { useFormStatus } from 'react-dom'
 import { Loader2 } from 'lucide-react'
 
-export function SubmitButton() {
+interface SubmitButtonProps {
+  label?: string;
+  loadingLabel?: string;
+}
+
+export function SubmitButton({ label = "MASUK KE AKUN", loadingLabel = "Memproses..." }: SubmitButtonProps) {
   const { pending } = useFormStatus()
 
   return (
@@ -15,10 +20,10 @@ export function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Memproses...</span>
+          <span>{loadingLabel}</span>
         </>
       ) : (
-        <span>MASUK KE AKUN</span>
+        <span>{label}</span>
       )}
     </button>
   )

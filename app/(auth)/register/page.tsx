@@ -6,16 +6,41 @@ import { registerUser } from './actions'
 import { SubmitButton } from '../login/_components/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowRight, CheckCircle2, ShieldCheck, Check, X, Eye, EyeOff, Sparkles } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ShieldCheck, Check, X, Eye, EyeOff, Sparkles, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation' // 🟢 IMPORT ROUTER UNTUK REDIRECT AMAN
 import { RegisterState } from './types'
 
 export default function RegisterPage() {
   const [state, formAction] = useActionState<RegisterState | undefined, FormData>(registerUser, { success: false })
   const [showPassword, setShowPassword] = useState(false)
   const [passwordValue, setPasswordValue] = useState('')
+  const router = useRouter() // Instansiasi router klien
+
+  // 🟢 INTERSEPTOR LIVE: Memantau perubahan state dari Server Action
+  useEffect(() => {
+    if (state?.error) {
+      toast.error(state.error);
+    }
+    
+    // JIKA BERHASIL: Munculkan Sonner Toast Premium, lalu tendang ke halaman login
+    if (state?.success && state?.message) {
+      toast.success('Registrasi Berhasil!', {
+        description: state.message,
+        icon: <UserPlus className="h-5 w-5 text-emerald-500" />,
+        duration: 4000,
+      });
+
+      // Beri delay visual 1.5 detik agar user sempat melihat keindahan toast sukses
+      const redirectTimeout = setTimeout(() => {
+        router.push('/login');
+      }, 1500);
+
+      return () => clearTimeout(redirectTimeout);
+    }
+  }, [state, router]);
 
   const checks = {
     length: passwordValue.length >= 8,
@@ -24,12 +49,6 @@ export default function RegisterPage() {
     number: /[0-9]/.test(passwordValue),
     symbol: /[^A-Za-z0-9]/.test(passwordValue),
   }
-
-  useEffect(() => {
-    if (state?.error) {
-      toast.error(state.error);
-    }
-  }, [state]);
 
   return (
     <div className="min-h-screen bg-white flex flex-col md:flex-row w-full overflow-x-hidden">
@@ -87,20 +106,6 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Buat Akun Baru</h1>
             <p className="text-slate-400 text-sm font-medium">Bergabunglah sekarang dan rasakan kemudahan belanja perlengkapan olahraga berkelas dunia.</p>
           </div>
-
-          {state?.success && (
-            <Alert className="border-emerald-100 bg-emerald-50/60 p-5 rounded-2xl shadow-sm animate-in zoom-in duration-300">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
-                <div className="space-y-1">
-                  <h5 className="text-sm font-black text-emerald-900 uppercase tracking-wide">Pendaftaran Sukses!</h5>
-                  <AlertDescription className="text-xs font-bold text-emerald-700 leading-relaxed">
-                    {state.message}. Silakan klik tombol masuk di bawah untuk mengakses akun etalase Anda.
-                  </AlertDescription>
-                </div>
-              </div>
-            </Alert>
-          )}
 
           <form action={formAction} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -189,8 +194,9 @@ export default function RegisterPage() {
               </div>
             )}
 
+            {/* 🟢 SEKARANG MEMBAWA LABEL & LOADING STATE BARU "DAFTAR" */}
             <div className="pt-2">
-              <SubmitButton />
+              <SubmitButton label="DAFTAR AKUN" loadingLabel="Mendaftarkan..." />
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">

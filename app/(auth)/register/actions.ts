@@ -63,7 +63,12 @@ export async function registerUser(
       withAuth: false,
     })
 
-    return { success: true, message: 'Pendaftaran berhasil! Silakan masuk.', timestamp: Date.now() }
+    // 🟢 KEMBALIKAN SINYAL SUKSES KE CLIENT KLIEN (JANGAN LANGSUNG REDIRECT DI SINI)
+    return { 
+      success: true, 
+      message: 'Pendaftaran berhasil! Akun Sahabat Sport Anda siap digunakan.', 
+      timestamp: Date.now() 
+    }
 
   } catch (error: any) {
     console.error("🔥 [Register API Error]:", error);
