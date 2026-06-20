@@ -6,13 +6,34 @@ import { ShoppingBag, ArrowLeft } from 'lucide-react';
 import { getCartItems } from '@/lib/api/cart';
 import { CartDisplayGrid } from './_components/cart-display-grid';
 
+const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
+
 export default async function CartPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get("session_token")?.value;
 
   if (!token) redirect('/login');
 
+  // 1. Ambil baris data item keranjang belanja
   const cartItems = await getCartItems(token);
+
+  // 2. 🟢 REFACTOR: Ambil dari endpoint asli /transactions/active
+  let transactionId = 0;
+  try {
+    const res = await fetch(`${API_URL}/transactions/active`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const data = await res.json();
+    
+    // 🟢 SINKRONISASI PAYLOAD BACKEND: Ambil dari data.result.id sesuai respon asli NestJS Anda
+    transactionId = data?.result?.id || 0; 
+    
+    // Untuk memantau di terminal server Next.js Anda saat dijalankan
+    console.log("=== SUCCESS HARVEST TRANSACTION ID ===", transactionId);
+  } catch (e) {
+    console.error("Gagal memanen Active Transaction ID dari server:", e);
+  }
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-white py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
@@ -44,8 +65,8 @@ export default async function CartPage() {
             </Link>
           </div>
         ) : (
-          /* ✅ OPER DATA KERANJANG DINAMIS KE GRID INTERAKTIF CLIENT COMPONENT */
-          <CartDisplayGrid initialItems={cartItems} />
+          /* ✅ SEKARANG DIJAMIN TRANSACTION ID MENERANGI ID ASLI (MISAL: 2347) KE GRID COMPONENT */
+          <CartDisplayGrid initialItems={cartItems} transactionId={transactionId} />
         )}
 
       </div>
