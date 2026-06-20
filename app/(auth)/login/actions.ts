@@ -1,78 +1,92 @@
 // app/(auth)/login/actions.ts
 'use server'
 
-import { cookies } from 'next/headers' // atau 'next/headers' sesuai Next.js version kamu
-import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { serverApiFetch } from '@/lib/server-api'
+import { redirect } from 'next/navigation'
+import { LoginState } from './types'
 
-export async function authenticate(prevState: any, formData: FormData) {
-  const email_or_phone_number = formData.get('email_or_phone_number')
-  const password = formData.get('password')
+export async function authenticate(
+  _prevState: LoginState | undefined,
+  formData: FormData
+): Promise<LoginState> {
+  
+  const email_or_phone_number = formData.get('email_or_phone_number') as string;
+  const password = formData.get('password') as string;
+  const remember_me = formData.get('remember_me') === 'on';
 
-  // 1. Validasi Input Dasar Sisi Server
+  const rawFields = { email_or_phone_number };
+
+  // 1. Validasi Input Dasar
   if (!email_or_phone_number || !password) {
-    return { error: 'Email/No. HP dan Password wajib diisi.' }
+    return { 
+      error: 'Email/Nomor Handphone dan Password wajib diisi!', 
+      fields: rawFields,
+      timestamp: Date.now()
+    };
   }
 
+  // flag penanda jika proses login sepenuhnya berhasil menembus API
+  let loginSuccessful = false;
+
   try {
-    // 2. Hit API Backend Utama (NestJS)
     const data = await serverApiFetch<any>('/login', {
       method: 'POST',
       body: { email_or_phone_number, password },
       withAuth: false,
-    })
-
-    // 3. Simpan Token ke Cookie jika Berhasil
-    const cookieStore = await cookies()
-    
-    cookieStore.set('session_token', data.data.token, {
-      httpOnly: true,                                      // 🔒 Proteksi XSS
-      secure: process.env.NODE_ENV === 'production',       // 🔒 Hanya HTTPS di Production
-      sameSite: 'lax',                                     // 🔒 Proteksi CSRF & Ramah UX Link luar
-      path: '/',                                           // 🌐 Berlaku di seluruh rute aplikasi
-      maxAge: 60 * 60 * 24 * 7,                            // ⏳ Persist selama 7 hari (Browser ditutup tetap aman)
     });
 
-    if (data.data?.user) {
-      cookieStore.set('user_data', JSON.stringify(data.data.user), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7,
-      })
-    }
+    const cookieStore = await cookies();
+    const maxAgeSeconds = remember_me ? 60 * 60 * 24 * 7 : 60 * 60 * 2; // 7 hari atau 2 jam
+
+    cookieStore.set('session_token', data.data.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: maxAgeSeconds,
+    });
+
+    // Nyalakan bendera sukses jika tidak ada error meledak sampai baris ini
+    loginSuccessful = true;
 
   } catch (error: any) {
-    console.error("Login Server Action Error:", error);
+    console.error("🔥 [Login API Error]:", error);
 
-    // 🟢 REFACTOR UTAMA: Ekstrak error response murni dari NestJS
-    // Cek apakah ada object response biner dari serverApiFetch yang membawa payload JSON
+    // Kupas tuntas error payload JSON dari NestJS
     if (error && typeof error.json === 'function') {
       try {
         const errorPayload = await error.json();
-        // Ambil "Email/No HP atau password salah" dari body response
         if (errorPayload && errorPayload.message) {
-          return { error: errorPayload.message };
+          return { 
+            error: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, 
+            fields: rawFields,
+            timestamp: Date.now()
+          };
         }
-      } catch (e) {
-        // Fallback jika gagal parse JSON
-      }
+      } catch (e) {}
     }
 
-    // Jika error datang dari kustom response object/custom throw yang sudah di-parse
-    if (error?.response?.data?.message) {
-      return { error: error?.response?.data?.message };
+    if (error?.message) {
+      return { error: error.message, fields: rawFields, timestamp: Date.now() };
     }
     
-    if (error?.message) {
-      return { error: error.message };
-    }
-
-    // Fallback jika memang server mati atau gangguan jaringan murni
-    return { error: 'Gagal terhubung ke server backend atau password salah.' }
+    return { 
+      error: 'Kredensial salah atau gagal terhubung ke server.', 
+      fields: rawFields,
+      timestamp: Date.now()
+    };
   }
 
-  // 4. Redirect ke dashboard jika sukses melewati try block
-  redirect('/')
+  // 🟢 KUNCI PEMBERANGUS TS(2366): Eksekusi pengalihan halaman secara eksklusif menggunakan blok pengondisian
+  if (loginSuccessful) {
+    redirect('/admin');
+  }
+
+  // 🟢 FALLBACK RETURN: Mengunci kepastian TypeScript agar fungsi selalu mengembalikan tipe LoginState di segala kondisi
+  return {
+    success: true,
+    error: null,
+    timestamp: Date.now()
+  };
 }
