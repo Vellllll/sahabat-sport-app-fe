@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { hasPermission } from './permissions';
+import { isAdminRole } from './roles';
 import { getSession } from './session';
 import type { Permission, Session } from './types';
 
@@ -13,8 +14,18 @@ export async function requireAuth(): Promise<Session> {
   return session;
 }
 
-export async function requirePermission(permission: Permission): Promise<Session> {
+export async function requireAdmin(): Promise<Session> {
   const session = await requireAuth();
+
+  if (!isAdminRole(session.user.role)) {
+    redirect('/?error=unauthorized');
+  }
+
+  return session;
+}
+
+export async function requirePermission(permission: Permission): Promise<Session> {
+  const session = await requireAdmin();
 
   if (!hasPermission(session.user.role, permission)) {
     redirect('/?error=unauthorized');
@@ -30,6 +41,10 @@ export async function ensurePermission(
 
   if (!session) {
     return { ok: false, error: 'Sesi Anda telah berakhir. Silakan login kembali.' };
+  }
+
+  if (!isAdminRole(session.user.role)) {
+    return { ok: false, error: 'Anda tidak memiliki izin untuk mengakses area admin.' };
   }
 
   if (!hasPermission(session.user.role, permission)) {

@@ -2,22 +2,25 @@ import { cookies } from 'next/headers';
 import { isTokenExpired } from '@/lib/auth';
 import { serverApiFetch } from '@/lib/server-api';
 import { getRoleFromToken, getUserIdFromToken } from './jwt';
+import { parseRole, parseRoleFromUserData } from './roles';
 import type { Session, SessionUser } from './types';
 
 function parseSessionUser(raw: unknown, fallbackUserId: number | null): SessionUser | null {
   if (!raw || typeof raw !== 'object') return null;
 
-  const user = raw as Partial<SessionUser>;
+  const user = raw as Partial<SessionUser> & { role_id?: number };
   const id = typeof user.id === 'number' ? user.id : fallbackUserId;
 
   if (!id) return null;
+
+  const role = parseRole(user.role) ?? (user.role_id ? parseRoleFromUserData(user) : null);
 
   return {
     id,
     name: typeof user.name === 'string' ? user.name : 'User',
     email: user.email ?? null,
     phone_number: user.phone_number ?? null,
-    role: user.role ?? null,
+    role,
   };
 }
 

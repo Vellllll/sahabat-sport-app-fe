@@ -1,3 +1,4 @@
+import { isAdminRole } from './roles';
 import type { Permission, UserRole } from './types';
 
 const ADMIN_PERMISSIONS: Permission[] = [
@@ -7,25 +8,9 @@ const ADMIN_PERMISSIONS: Permission[] = [
   'categories:manage',
 ];
 
-const EMPLOYEE_PERMISSIONS: Permission[] = [
-  'admin:access',
-  'transactions:manage',
-];
-
 export function getPermissionsForRole(role: UserRole | null | undefined): Permission[] {
-  if (!role) return [];
-
-  const permissions = new Set<Permission>();
-
-  if (role.is_admin) {
-    ADMIN_PERMISSIONS.forEach((permission) => permissions.add(permission));
-  }
-
-  if (role.is_employee) {
-    EMPLOYEE_PERMISSIONS.forEach((permission) => permissions.add(permission));
-  }
-
-  return Array.from(permissions);
+  if (!isAdminRole(role)) return [];
+  return [...ADMIN_PERMISSIONS];
 }
 
 export function hasPermission(
@@ -36,7 +21,7 @@ export function hasPermission(
 }
 
 export function canAccessAdmin(role: UserRole | null | undefined): boolean {
-  return hasPermission(role, 'admin:access');
+  return isAdminRole(role);
 }
 
 export function getRequiredPermissionForPath(pathname: string): Permission | null {

@@ -4,6 +4,9 @@
 import { cookies } from 'next/headers'
 import { serverApiFetch } from '@/lib/server-api'
 import { redirect } from 'next/navigation'
+import { getRoleFromToken } from '@/lib/rbac/jwt'
+import { isAdminRole } from '@/lib/rbac/roles'
+import type { SessionUser } from '@/lib/rbac/types'
 import { LoginState } from './types'
 
 export async function authenticate(
@@ -47,7 +50,17 @@ export async function authenticate(
       maxAge: maxAgeSeconds,
     });
 
-    // Nyalakan bendera sukses jika tidak ada error meledak sampai baris ini
+    const user = data.data?.user as SessionUser | undefined;
+    if (user) {
+      cookieStore.set('user_data', JSON.stringify(user), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: maxAgeSeconds,
+      });
+    }
+
     loginSuccessful = true;
 
   } catch (error: any) {
@@ -78,9 +91,16 @@ export async function authenticate(
     };
   }
 
-  // 🟢 KUNCI PEMBERANGUS TS(2366): Eksekusi pengalihan halaman secara eksklusif menggunakan blok pengondisian
   if (loginSuccessful) {
-    redirect('/admin');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('session_token')?.value;
+    const role = token ? getRoleFromToken(token) : null;
+
+    if (isAdminRole(role)) {
+      redirect('/admin');
+    }
+
+    redirect('/');
   }
 
   // 🟢 FALLBACK RETURN: Mengunci kepastian TypeScript agar fungsi selalu mengembalikan tipe LoginState di segala kondisi
