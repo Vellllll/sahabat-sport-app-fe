@@ -5,6 +5,12 @@ import { RegisterState, RegisterFields } from './types'
 import { serverApiFetch } from '@/lib/server-api'
 import { z } from 'zod'
 
+// Regex ketat untuk nomor telepon Indonesia (Hanya angka murni)
+const phoneRegex = /^08[0-9]{8,13}$/;
+
+// Regex standar untuk email formal (Mencegah karakter wildcard SQL aneh di luar RFC)
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 const RegisterSchema = z.object({
   name: z
     .string()
@@ -14,7 +20,17 @@ const RegisterSchema = z.object({
   email_or_phone_number: z
     .string()
     .min(1, "Email atau Nomor Telepon wajib diisi")
-    .transform((val) => val.trim()),
+    .transform((val) => val.trim())
+    .refine((val) => {
+      // 🟢 STRATEGI PERISAI LITERAL: Pastikan input memenuhi salah satu format valid murni
+      const isEmail = emailRegex.test(val);
+      const isPhone = phoneRegex.test(val);
+      
+      // Jika mengandung karakter wildcard % atau _ di luar struktur email valid, otomatis blokir
+      return isEmail || isPhone;
+    }, {
+      message: "Format Email atau Nomor Handphone tidak valid (Karakter khusus ilegal dilarang)"
+    }),
     
   password: z
     .string()
@@ -57,13 +73,16 @@ export async function registerUser(
   }
 
   try {
+    // 🟢 DATA TRANSMISSION SECURITY:
+    // validation.data dikirim dalam bentuk JSON payload murni.
+    // Karakter seperti % atau _ akan dienkapsulasi sebagai string literal JSON biasa,
+    // sehingga mustahil memanipulasi struktur command query kecuali backend Anda sengaja melakukan concating query mentah.
     await serverApiFetch('/register', {
       method: 'POST',
       body: validation.data,
       withAuth: false,
     })
 
-    // 🟢 KEMBALIKAN SINYAL SUKSES KE CLIENT KLIEN (JANGAN LANGSUNG REDIRECT DI SINI)
     return { 
       success: true, 
       message: 'Pendaftaran berhasil! Akun Sahabat Sport Anda siap digunakan.', 
