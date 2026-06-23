@@ -1,9 +1,17 @@
+// app/admin/categories/_components/import-category-modal.tsx
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
 import { X, UploadCloud, FileSpreadsheet, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { importCategoriesAction } from './import-actions';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Props {
   isOpen: boolean;
@@ -17,8 +25,6 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!isOpen) return null;
-
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -31,8 +37,11 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
 
   const processFile = (file: File) => {
     setErrorMsg(null);
+    // Validasi tipe mime-type dan ekstensi file murni .csv
     if (file.type !== "text/csv" && !file.name.endsWith('.csv')) {
-      setErrorMsg("Format file harus berupa .CSV");
+      const msg = "Format file tidak valid! Berkas wajib berupa format berekstensi .CSV";
+      setErrorMsg(msg);
+      toast.error(msg);
       setSelectedFile(null);
       return;
     }
@@ -56,36 +65,65 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
 
   const handleSubmitImport = () => {
     if (!selectedFile) return;
-
+    
     const reader = new FileReader();
     reader.onload = async (e) => {
       const text = e.target?.result as string;
       
-      // PARSER CSV SEDERHANA & ROBUST
-      // Membaca baris demi baris, membuang spasi kosong, dan memisahkan koma/semikolon
+      // Memecah teks berkas CSV menjadi baris terpisah
       const lines = text.split(/\r?\n/);
+      
+      if (lines.length < 1) {
+        const msg = "Gagal memproses berkas. File CSV kosong.";
+        setErrorMsg(msg);
+        toast.error(msg);
+        return;
+      }
+
+      // 🟢 DETEKSI & VALIDASI STRUKTUR HEADER KOLOM CSV
+      const headerLine = lines[0].trim().toLowerCase();
+      // Memisahkan kolom header berdasarkan pembatas koma atau titik koma (Excel lokalisasi ID)
+      const headers = headerLine.split(/[;,]/).map(h => h.replace(/^"|"$/g, '').trim());
+
+      if (headers[0] !== 'name') {
+        const msg = "Struktur format CSV Salah! Kolom pertama pada baris pertama wajib bernama 'name'.";
+        setErrorMsg(msg);
+        toast.error(msg, {
+          description: "Harap periksa kembali template atau panduan penulisan CSV di bawah.",
+          duration: 6000
+        });
+        return;
+      }
+
       const parsedRows: Array<{ name: string }> = [];
 
-      // Asumsi file CSV memiliki header di baris pertama (misal: "name" atau "Nama Kategori")
-      // Kita iterasi mulai dari indeks 1 (baris kedua)
+      // Iterasi data dimulai dari baris kedua (indeks 1) karena baris pertama adalah header
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
-        if (!line) continue; // Lewati baris kosong
+        if (!line) continue; // Lewati baris kosong jika ada di tengah/akhir berkas
         
-        // Membersihkan tanda kutip ganda jika ada dari file Excel
-        const nameValue = line.split(/[;,]/)[0]?.replace(/^"|"$/g, '').trim();
+        const columns = line.split(/[;,]/);
+        const nameValue = columns[0]?.replace(/^"|"$/g, '').trim();
+        
         if (nameValue) {
           parsedRows.push({ name: nameValue });
         }
       }
 
-      // Jalankan Eksekusi Server Action di dalam Transition Area
+      if (parsedRows.length === 0) {
+        const msg = "Tidak ada baris data kategori valid yang ditemukan di bawah baris header.";
+        setErrorMsg(msg);
+        toast.error(msg);
+        return;
+      }
+
+      // Jalankan Eksekusi Server Action di dalam Transition Area Next.js
       startTransition(async () => {
         const result = await importCategoriesAction(parsedRows);
         
         if (!result.success) {
           setErrorMsg(result.error || 'Gagal memproses file.');
-          toast.error(result.error);
+          toast.error(result.error || 'Terjadi kesalahan sistem.');
           return;
         }
 
@@ -94,6 +132,10 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
       });
     };
 
+    reader.onerror = () => {
+      toast.error("Gagal membaca fisik file CSV.");
+    };
+    
     reader.readAsText(selectedFile);
   };
 
@@ -105,30 +147,18 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200" 
-        onClick={handleCloseModal} 
-      />
-      
-      {/* Container Konten Popup */}
-      <div className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl p-8 animate-in zoom-in duration-200 border border-slate-100">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
+      <DialogContent className="w-full max-w-md bg-white rounded-[32px] shadow-2xl p-8 border border-slate-100 sm:rounded-[32px] gap-0">
         
         {/* Header Modal */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">Import Massal</h2>
-            <p className="text-xs font-medium text-slate-400 mt-0.5">Unggah berkas CSV untuk kategori baru.</p>
-          </div>
-          <button 
-            disabled={isPending}
-            onClick={handleCloseModal} 
-            className="p-2 hover:bg-slate-50 disabled:opacity-30 rounded-full text-slate-400 transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        <DialogHeader className="text-left mb-6 relative">
+          <DialogTitle className="text-xl font-bold text-slate-900 tracking-tight">
+            Import Massal
+          </DialogTitle>
+          <DialogDescription className="text-xs font-medium text-slate-400 mt-0.5">
+            Unggah berkas CSV untuk menambahkan kategori produk baru secara massal.
+          </DialogDescription>
+        </DialogHeader>
 
         {/* Zona Input / Drag Zone Drop File */}
         <div className="space-y-6">
@@ -147,10 +177,10 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
               ref={fileInputRef}
               type="file"
               accept=".csv"
+              disabled={isPending}
               onChange={handleFileChange}
               className="hidden"
             />
-
             {selectedFile ? (
               <div className="flex flex-col items-center gap-3 animate-in zoom-in-95 duration-100">
                 <div className="w-14 h-14 bg-blue-50 text-[#165dfc] rounded-2xl flex items-center justify-center border border-blue-100">
@@ -166,7 +196,7 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
             ) : (
               <div className="flex flex-col items-center gap-3 text-slate-400">
                 <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center text-slate-400">
-                  <UploadCloud className="h-5 w-5" />
+                  <UploadCloud className="h-5 w-5 text-slate-400" />
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs font-bold text-slate-700">Tarik & lepas file di sini, atau klik untuk telusuri</p>
@@ -218,9 +248,9 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
               )}
             </button>
           </div>
-
         </div>
-      </div>
-    </div>
+
+      </DialogContent>
+    </Dialog>
   );
 }
