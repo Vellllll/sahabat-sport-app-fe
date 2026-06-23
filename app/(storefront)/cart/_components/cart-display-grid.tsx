@@ -38,21 +38,18 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
   // KUNCI UX BARU: State untuk mengontrol Modal Konfirmasi "Siapkan Barang Saya"
   const [isCheckoutConfirmOpen, setIsCheckoutConfirmOpen] = useState(false);
 
-  // Sync state internal jika initialItems dari Server Component berubah akibat re-fetch
   if (initialItems !== items && !isPending) {
     setItems(initialItems);
   }
 
-  // 🟢 IMPLEMENTASI [Cross-Tab Session Sync]
+  // [Cross-Tab Session Sync]
   useEffect(() => {
     const syncCartData = () => {
       startTransition(() => {
-        // Memicu Next.js untuk memvalidasi ulang Server Component tanpa merusak state Klien
         router.refresh();
       });
     };
 
-    // Picu sinkronisasi ketika tab kembali dibuka (Visibility Change) atau jendela difokuskan (Window Focus)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         syncCartData();
@@ -122,6 +119,56 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
     });
   };
 
+  // 🟢 IMPLEMENTASI [Boundary Value Quantities]: Mencegat input manual/inspeksi elemen HTML yang rusak
+  const handleDirectInputChange = (
+    productItemId: number,
+    inputValue: string,
+    currentCount: number,
+    stock: number
+  ) => {
+    // 1. Bersihkan input dari segala karakter non-angka murni (abc, @, dsb)
+    const cleanNumbers = inputValue.replace(/\D/g, '');
+    let targetQuantity = parseInt(cleanNumbers, 10);
+
+    // 2. Jika hasil parse ilegal (e.g., kosong, NaN, 0, atau negatif dari manipulasi inspeksi HTML)
+    // Maka paksa kembalikan nilai minimum absolut yaitu 1
+    if (isNaN(targetQuantity) || targetQuantity < 1) {
+      targetQuantity = 1;
+      toast.error("Kuantitas tidak valid!", {
+        description: "Jumlah item otomatis dikembalikan ke batas minimum pembelian yaitu 1 Pcs."
+      });
+    }
+
+    // 3. Batasi kuantitas maksimum agar tidak melampaui stok fisik gudang
+    if (targetQuantity > stock) {
+      targetQuantity = stock;
+      toast.error("Melebihi Batas Stok!", {
+        description: `Stok maksimal produk ini di gudang hanya tersedia ${stock} item.`
+      });
+    }
+
+    // Hitung selisih kuantitas baru dengan kuantitas lama untuk dikirim ke API
+    const diff = targetQuantity - currentCount;
+    if (diff === 0) return; // Tidak ada perubahan, hentikan eksekusi
+
+    startTransition(async () => {
+      const result = await updateCartItemQuantity(productItemId, diff, currentCount, stock);
+      if (!result.success) {
+        toast.error(result.error || 'Gagal memperbarui kuantitas produk.');
+      } else {
+        setItems(prev => prev.map(item => {
+          if (item.product_item.id === productItemId) return { ...item, count: targetQuantity };
+          return item;
+        }));
+        
+        const targetItemData = items.find(i => i.product_item.id === productItemId);
+        if (targetItemData) {
+          addToCart({ id: productItemId.toString(), name: targetItemData.product_item.name, price: Number(targetItemData.product_item.price) }, diff);
+        }
+      }
+    });
+  };
+
   const confirmDeleteAction = () => {
     if (!itemToDelete) return;
     const { id, currentCount } = itemToDelete;
@@ -168,7 +215,6 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start relative">
       
-      {/* 💡 SINKRONISASI INDIKATOR: Tampilkan overlay loading tipis jika tab sedang menyinkronkan data dari tab sebelah */}
       {isPending && (
         <div className="absolute inset-0 bg-white/20 backdrop-blur-[0.5px] z-50 flex items-center justify-center pointer-events-none" />
       )}
@@ -190,13 +236,31 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
                   Stok Gudang: <span className="text-slate-600 font-extrabold">{item.product_item.stock} item</span>
                 </p>
                 <div className="flex items-center gap-3 pt-3">
+                  
+                  {/* KOTAK KONTROL KUANTITAS KEBAL INJEKSI INSPEKSI HTML */}
                   <div className="flex items-center border rounded-lg p-0.5 transition-colors bg-slate-50 border-slate-100">
                     <button type="button" disabled={isPending} onClick={() => handleQuantityChange(item.id, item.product_item.id, item.count, item.product_item.stock, 'minus')} className="w-7 h-7 font-bold text-slate-500 hover:bg-white hover:text-red-500 rounded-md transition-all text-xs cursor-pointer">-</button>
-                    <span className="w-8 text-center font-black text-slate-800 text-xs flex items-center justify-center">
-                      {isPending ? <Loader2 className="h-3 w-3 animate-spin text-slate-400" /> : item.count}
-                    </span>
+                    
+                    {/* 🟢 DITINGKATKAN MENJADI INPUT TEXT: Dilengkapi interseptor onChange & onBlur untuk mematahkan manipulasi elemen HTML */}
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      disabled={isPending}
+                      value={isPending ? '' : item.count}
+                      onChange={(e) => handleDirectInputChange(item.product_item.id, e.target.value, item.count, item.product_item.stock)}
+                      onBlur={(e) => {
+                        // Kunci Pengaman Ganda saat input kehilangan fokus: Pastikan isi kotak tidak kosong/rusak
+                        if (!e.target.value || parseInt(e.target.value, 10) < 1) {
+                          handleDirectInputChange(item.product_item.id, '1', item.count, item.product_item.stock);
+                        }
+                      }}
+                      className="w-10 bg-transparent text-center font-black text-slate-800 text-xs focus:outline-none focus:bg-white rounded border-none p-0 h-7 flex items-center justify-center select-all"
+                    />
+                    
                     <button type="button" disabled={item.count >= item.product_item.stock || isPending} onClick={() => handleQuantityChange(item.id, item.product_item.id, item.count, item.product_item.stock, 'plus')} className="w-7 h-7 font-bold text-slate-500 hover:bg-white hover:text-slate-800 rounded-md transition-all text-xs cursor-pointer">+</button>
                   </div>
+                  
                   <button type="button" disabled={isPending} onClick={() => { setItemToDelete({ id: item.product_item.id, currentCount: item.count, name: item.product_item.name }); setIsAlertOpen(true); }} className="p-1.5 text-slate-300 hover:text-red-500 rounded-lg transition-colors cursor-pointer disabled:opacity-30"><Trash2 className="h-4 w-4" /></button>
                 </div>
               </div>
