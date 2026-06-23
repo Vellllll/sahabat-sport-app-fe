@@ -1,7 +1,7 @@
 // app/(storefront)/cart/_components/cart-display-grid.tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { Trash2, ArrowRight, ShieldCheck, ShoppingBag, Loader2, AlertTriangle, PackageCheck } from 'lucide-react';
 import { CartLineItem } from '@/lib/api/cart';
 import { updateCartItemQuantity, requestTransaction } from '../actions';
@@ -35,12 +35,38 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: number; currentCount: number; name: string } | null>(null);
 
-  // 🟢 KUNCI UX BARU: State untuk mengontrol Modal Konfirmasi "Siapkan Barang Saya"
+  // KUNCI UX BARU: State untuk mengontrol Modal Konfirmasi "Siapkan Barang Saya"
   const [isCheckoutConfirmOpen, setIsCheckoutConfirmOpen] = useState(false);
 
+  // Sync state internal jika initialItems dari Server Component berubah akibat re-fetch
   if (initialItems !== items && !isPending) {
     setItems(initialItems);
   }
+
+  // 🟢 IMPLEMENTASI [Cross-Tab Session Sync]
+  useEffect(() => {
+    const syncCartData = () => {
+      startTransition(() => {
+        // Memicu Next.js untuk memvalidasi ulang Server Component tanpa merusak state Klien
+        router.refresh();
+      });
+    };
+
+    // Picu sinkronisasi ketika tab kembali dibuka (Visibility Change) atau jendela difokuskan (Window Focus)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        syncCartData();
+      }
+    };
+
+    window.addEventListener('focus', syncCartData);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', syncCartData);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [router]);
 
   const formatRupiah = (angka: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
@@ -113,7 +139,6 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
     });
   };
 
-  // 🟢 REFACTOR HANDLER: Fungsi utama yang dieksekusi SETELAH user klik konfirmasi modal
   const confirmRequestTransactionAction = () => {
     if (items.length === 0 || !transactionId) {
       toast.error('Data transaksi tidak valid.');
@@ -134,15 +159,20 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
 
         if (typeof clearCart === 'function') clearCart();
         setItems([]);
-        setIsCheckoutConfirmOpen(false); // Tutup modal setelah sukses
+        setIsCheckoutConfirmOpen(false);
         router.push('/transactions');
       }
     });
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start relative">
       
+      {/* 💡 SINKRONISASI INDIKATOR: Tampilkan overlay loading tipis jika tab sedang menyinkronkan data dari tab sebelah */}
+      {isPending && (
+        <div className="absolute inset-0 bg-white/20 backdrop-blur-[0.5px] z-50 flex items-center justify-center pointer-events-none" />
+      )}
+
       {/* AREA GRID RENDER ITEM UTAMA */}
       <div className="lg:col-span-7 divide-y divide-slate-100">
         {items.map((item) => {
@@ -195,7 +225,6 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
           </div>
         </div>
         
-        {/* 🟢 MODIFIKASI ONCLICK: Klik tombol ini sekarang membuka modal konfirmasi terlebih dahulu */}
         <button 
           type="button" 
           disabled={isPending || items.length === 0} 
@@ -219,7 +248,7 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
         </div>
       </div>
 
-      {/* POPUP 1: ALERT DIALOG HAPUS SATU ITEM (BAWAN KODE SEBELUMNYA) */}
+      {/* POPUP 1: ALERT DIALOG HAPUS SATU ITEM */}
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent className="bg-white border-none rounded-[24px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.08)] max-w-[90vw] sm:max-w-sm">
           <AlertDialogHeader className="text-left space-y-2.5">
@@ -236,7 +265,7 @@ export function CartDisplayGrid({ initialItems, transactionId }: Props) {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* 🟢 POPUP 2: SHADCN ALERT DIALOG BARU UNTUK KONFIRMASI "SIAPKAN BARANG SAYA" */}
+      {/* POPUP 2: SHADCN ALERT DIALOG UNTUK KONFIRMASI "SIAPKAN BARANG SAYA" */}
       <AlertDialog open={isCheckoutConfirmOpen} onOpenChange={setIsCheckoutConfirmOpen}>
         <AlertDialogContent className="bg-white border-none rounded-[24px] p-6 shadow-[0_20px_50px_rgba(0,0,0,0.08)] max-w-[90vw] sm:max-w-sm">
           <AlertDialogHeader className="text-left space-y-2.5">
