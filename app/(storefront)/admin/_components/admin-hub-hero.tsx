@@ -1,6 +1,6 @@
 // app/admin/_components/admin-hub-hero.tsx
 import Link from 'next/link';
-import { Layers, Package, LayoutDashboard, ArrowUpRight } from 'lucide-react';
+import { Layers, Package, LayoutDashboard, ArrowUpRight, Ruler } from 'lucide-react';
 
 export function AdminHubHero({
   canManageProducts,
@@ -21,43 +21,59 @@ export function AdminHubHero({
       </div>
 
       {(canManageCategories || canManageProducts) && (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {canManageCategories && (
-        <Link 
-          href="/admin/categories"
-          className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-blue-50 text-[#165dfc] rounded-xl flex items-center justify-center">
-              <Layers className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Manajemen Kategori</h3>
-              <p className="text-[11px] font-medium text-slate-400">Kelola klasifikasi rumpun produk</p>
-            </div>
-          </div>
-          <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-        </Link>
-        )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {canManageCategories && (
+            <Link
+              href="/admin/categories"
+              className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 bg-blue-50 text-[#165dfc] rounded-xl flex items-center justify-center">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Manajemen Kategori</h3>
+                  <p className="text-[11px] font-medium text-slate-400">Kelola klasifikasi rumpun produk</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+            </Link>
+          )}
 
-        {canManageProducts && (
-        <Link 
-          href="/admin/products"
-          className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 bg-blue-50 text-[#165dfc] rounded-xl flex items-center justify-center">
-              <Package className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Katalog Produk</h3>
-              <p className="text-[11px] font-medium text-slate-400">Atur unit spesifikasi & varian stok</p>
-            </div>
-          </div>
-          <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-        </Link>
-        )}
-      </div>
+          {canManageProducts && (
+            <Link
+              href="/admin/products"
+              className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 bg-blue-50 text-[#165dfc] rounded-xl flex items-center justify-center">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Katalog Produk</h3>
+                  <p className="text-[11px] font-medium text-slate-400">Atur unit spesifikasi & varian stok</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+            </Link>
+          )}
+
+          {/* Menu Baru: Manajemen Satuan */}
+          {canManageProducts && (
+            <Link href="/admin/units" className="group p-5 bg-white border border-slate-100 rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex items-center justify-between hover:border-[#165dfc]/30 hover:shadow-md transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-11 bg-blue-50 text-[#165dfc] rounded-xl flex items-center justify-center">
+                  <Ruler className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">Manajemen Satuan</h3>
+                  <p className="text-[11px] font-medium text-slate-400">Atur parameter kuantitas</p>
+                </div>
+              </div>
+              <ArrowUpRight className="h-4 w-4 text-slate-300 group-hover:text-[#165dfc] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );

@@ -2,12 +2,12 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Search, Tag, ChevronLeft, ChevronRight, Loader2, Edit2, Trash2 } from 'lucide-react';
 import DeleteConfirmModal from './delete-confirm-modal';
-import EditCategoryModal from './edit-category-modal';
 
 interface Category {
-    id: string;
+    id: string | number;
     name: string;
     description?: string;
 }
@@ -25,9 +25,8 @@ export default function CategoryListOptimized({ initialData, totalPages, current
     const [isPending, startTransition] = useTransition();
     const [inputValue, setInputValue] = useState(searchParams.get('q') || '');
 
-    // State Manajemen Modal
+    // State Manajemen Modal (delete tetap modal, create/edit/detail sudah jadi dedicated page)
     const [deleteItem, setDeleteItem] = useState<Category | null>(null);
-    const [editItem, setEditItem] = useState<Category | null>(null);
 
     const updateUrl = (newParams: Record<string, string | number>) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -36,7 +35,7 @@ export default function CategoryListOptimized({ initialData, totalPages, current
     };
 
     function handleLimitChange(value: string): void {
-        throw new Error('Function not implemented.');
+        updateUrl({ limit: value, page: 1 });
     }
 
     return (
@@ -63,23 +62,23 @@ export default function CategoryListOptimized({ initialData, totalPages, current
             <div className={`space-y-2 min-h-[300px] ${isPending ? 'opacity-50' : 'opacity-100 transition-opacity'}`}>
                 {initialData.map((cat) => (
                     <div key={cat.id} className="group flex items-center justify-between p-4 bg-white border border-slate-100 rounded-2xl hover:border-[#165dfc]/30 hover:shadow-sm transition-all">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-[#165dfc] group-hover:bg-[#165dfc]/5 transition-colors">
+                        <Link href={`/admin/categories/${cat.id}`} className="flex items-center gap-4 min-w-0 flex-1">
+                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-[#165dfc] group-hover:bg-[#165dfc]/5 transition-colors shrink-0">
                                 <Tag className="h-5 w-5" />
                             </div>
-                            <div>
-                                <h3 className="text-sm font-bold text-slate-700 leading-tight">{cat.name}</h3>
+                            <div className="min-w-0">
+                                <h3 className="text-sm font-bold text-slate-700 leading-tight truncate">{cat.name}</h3>
                             </div>
-                        </div>
+                        </Link>
 
                         {/* Action Buttons (Muncul Saat Hover) */}
                         <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button
-                                onClick={() => setEditItem(cat)}
+                            <Link
+                                href={`/admin/categories/${cat.id}/edit`}
                                 className="p-2.5 text-slate-400 hover:text-[#165dfc] hover:bg-[#165dfc]/5 rounded-xl transition-all"
                             >
                                 <Edit2 className="h-4 w-4" />
-                            </button>
+                            </Link>
                             <button
                                 onClick={() => setDeleteItem(cat)}
                                 className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
@@ -132,13 +131,7 @@ export default function CategoryListOptimized({ initialData, totalPages, current
                 </div>
             </div>
 
-            {/* Mount Modals di bawah hirarki */}
-            <EditCategoryModal
-                isOpen={!!editItem}
-                item={editItem}
-                onClose={() => setEditItem(null)}
-            />
-
+            {/* Delete tetap modal karena berupa aksi destruktif yang perlu konfirmasi cepat */}
             <DeleteConfirmModal
                 isOpen={!!deleteItem}
                 item={deleteItem}

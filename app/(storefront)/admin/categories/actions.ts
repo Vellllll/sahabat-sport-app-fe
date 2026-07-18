@@ -122,7 +122,7 @@ export async function updateCategory(prevState: FormState, formData: FormData): 
 }
 
 // --- ACTION: DELETE KATEGORI ---
-export async function deleteCategory(id: string) {
+export async function deleteCategory(id: string | number) {
   const access = await ensurePermission('categories:manage');
   if (!access.ok) return { success: false, message: access.error };
 

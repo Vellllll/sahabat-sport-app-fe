@@ -1,7 +1,7 @@
 // app/admin/categories/page.tsx
 import { getAllCategories } from '@/lib/api';
 import CategoryListOptimized from './_components/category-list';
-import AddCategoryModal from './add-category-modal';
+import CategoryActions from './_components/category-actions';
 import { Suspense } from 'react';
 import { requirePermission } from '@/lib/rbac/guards';
 
@@ -32,7 +32,8 @@ export default async function CategoriesPage({
                         <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kategori Produk</h1>
                         <p className="text-slate-400 text-sm font-medium">Kelola klasifikasi produk Sahabat Sport.</p>
                     </div>
-                    <AddCategoryModal />
+                    {/* 🟢 REFACTOR: Tombol "Tambah" sekarang mengarah ke dedicated page /admin/categories/create */}
+                    <CategoryActions />
                 </div>
 
                 <Suspense key={query + currentPage} fallback={<div className="h-40 animate-pulse bg-white rounded-3xl" />}>

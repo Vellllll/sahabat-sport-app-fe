@@ -4,15 +4,17 @@
 import { useTransition } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { deleteCategory } from '../actions';
-import { toast } from 'sonner'; // 🟢 1. IMPORT TOAST SONNER
+import { toast } from 'sonner';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  item: { id: string; name: string } | null;
+  item: { id: string | number; name: string } | null;
+  /** Optional: called after a successful delete, in addition to onClose. Useful for redirecting away from a detail page that no longer exists. */
+  onDeleted?: () => void;
 }
 
-export default function DeleteConfirmModal({ isOpen, onClose, item }: Props) {
+export default function DeleteConfirmModal({ isOpen, onClose, item, onDeleted }: Props) {
   const [isPending, startTransition] = useTransition();
 
   if (!isOpen || !item) return null;
@@ -21,13 +23,12 @@ export default function DeleteConfirmModal({ isOpen, onClose, item }: Props) {
     startTransition(async () => {
       // Panggil Action Server
       const result = await deleteCategory(item.id);
-      
+
       if (result.success) {
-        // 🟢 2. TAMPILKAN TOAST SUKSES
         toast.success(result.message);
-        onClose(); // Tutup modal jika sukses
+        onClose();
+        onDeleted?.();
       } else {
-        // 🟢 3. TAMPILKAN TOAST ERROR SPESIFIK DARI NESTJS
         toast.error(result.message);
       }
     });
@@ -36,11 +37,11 @@ export default function DeleteConfirmModal({ isOpen, onClose, item }: Props) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       {/* Background Overlay */}
-      <div 
-        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200" 
-        onClick={() => !isPending && onClose()} 
+      <div
+        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={() => !isPending && onClose()}
       />
-      
+
       {/* Modal Content */}
       <div className="relative w-full max-w-sm bg-white rounded-[32px] shadow-2xl p-8 animate-in zoom-in duration-200">
         <div className="flex flex-col items-center text-center">
@@ -52,21 +53,19 @@ export default function DeleteConfirmModal({ isOpen, onClose, item }: Props) {
             Anda akan menghapus <span className="font-bold text-slate-800">"{item.name}"</span>. Data tidak dapat dipulihkan.
           </p>
 
-          {/* 🟢 REFACTOR: Boks Alert Merah Bawaan {errorMsg && ...} di Sini Sudah Dihapus Total */}
-
           <div className="grid grid-cols-2 gap-3 w-full">
-            <button 
+            <button
               type="button"
-              disabled={isPending} 
-              onClick={onClose} 
+              disabled={isPending}
+              onClick={onClose}
               className="py-3.5 px-6 rounded-2xl font-bold text-xs tracking-widest text-slate-400 hover:bg-slate-50 transition-all uppercase cursor-pointer disabled:opacity-50"
             >
               Batal
             </button>
-            <button 
+            <button
               type="button"
-              disabled={isPending} 
-              onClick={handleConfirm} 
+              disabled={isPending}
+              onClick={handleConfirm}
               className="py-3.5 px-6 rounded-2xl font-bold text-xs tracking-widest bg-red-500 text-white shadow-lg shadow-red-200 hover:bg-red-600 active:scale-95 transition-all uppercase flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Hapus'}
