@@ -55,6 +55,7 @@ export interface TransactionDetailItem {
 // lib/api/storefront.ts
 
 export interface ApiResponseTransactionDetail {
+    reject_note: boolean;
     is_sent: boolean;
     is_rejected: boolean;
     pic_proof_of_transfer_url: string;

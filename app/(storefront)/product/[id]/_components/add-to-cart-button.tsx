@@ -32,11 +32,7 @@ export function AddToCartButton({ productItemId, productName = "Item", productPr
       }
 
       // 🟢 3. SINKRONKAN STATE: Dorong counter ke navbar browser secara real-time
-      addToCart({
-        id: productItemId.toString(),
-        name: productName,
-        price: productPrice
-      });
+      
 
       toast.success('Varian produk berhasil ditambahkan ke keranjang belanja!');
     });

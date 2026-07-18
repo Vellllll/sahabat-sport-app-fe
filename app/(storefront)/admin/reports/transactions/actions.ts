@@ -70,10 +70,6 @@ export async function getTransactionReportSummary(
 
     const json = await serverApiFetch<ReportApiResponse>(endpoint, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      cache: 'no-store'
     });
 
     return json;
