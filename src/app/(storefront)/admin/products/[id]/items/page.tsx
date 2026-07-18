@@ -22,7 +22,7 @@ export default async function ProductItemsPage({ params, searchParams }: PagePro
   const searchQuery = resolvedSearchParams.q || '';
 
   const [{ data, meta }, units] = await Promise.all([
-    getProductItems(productId, currentPage, currentLimit, searchQuery),
+    getProductItems(resolvedParams.id, currentPage, currentLimit, searchQuery),
     getAllUnitsAvailable()
   ]);
 
