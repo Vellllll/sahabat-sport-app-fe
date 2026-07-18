@@ -1,64 +1,62 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { Package, ArrowLeft } from 'lucide-react';
-import ProductItemManager from './_components/product-item-manager';
-import { getProductById, getProductItems } from './actions';
+import { ArrowLeft, Box } from 'lucide-react';
 import { requirePermission } from '@/lib/rbac/guards';
+import { getProductItems, getAllUnitsAvailable } from './actions';
+import ProductItemList from './_components/item-list';
 
-export default async function ProductItemsPage({
-  params,
-  searchParams,
-}: {
+interface PageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ page?: string; limit?: string; isDisplayed?: string }>;
-}) {
+  searchParams: Promise<{ page?: string; limit?: string; q?: string }>;
+}
+
+export default async function ProductItemsPage({ params, searchParams }: PageProps) {
   await requirePermission('products:manage');
 
-  const { id } = await params;
-  const sp = await searchParams;
+  const resolvedParams = await params;
+  const resolvedSearchParams = await searchParams;
 
-  const currentPage = Number(sp.page) || 1;
-  const currentLimit = Number(sp.limit) || 10;
-  
-  const isDisplayed = sp.isDisplayed === 'true' ? true : 
-                      sp.isDisplayed === 'false' ? false : null;
+  const productId = Number(resolvedParams.id);
+  const currentPage = Number(resolvedSearchParams.page) || 1;
+  const currentLimit = Number(resolvedSearchParams.limit) || 10;
+  const searchQuery = resolvedSearchParams.q || '';
 
-  const data = await getProductItems(currentPage, currentLimit, parseInt(id), isDisplayed);
-  const parentProduct = await getProductById(parseInt(id));
+  const [{ data, meta }, units] = await Promise.all([
+    getProductItems(productId, currentPage, currentLimit, searchQuery),
+    getAllUnitsAvailable()
+  ]);
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 flex justify-center items-start">
-      <div className="w-full max-w-[800px]">
-        
-        {/* Navigasi & Breadcrumb */}
-        <Link 
-          href="/admin/products" 
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-brand transition-colors mb-6 tracking-widest uppercase"
-        >
-          <ArrowLeft className="h-4 w-4" /> Kembali ke Katalog
-        </Link>
+      <div className="w-full max-w-[1000px]">
 
-        {/* Header Section */}
-        <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 p-8 mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="mb-6">
+          <Link href="/admin/products" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+            <ArrowLeft className="h-4 w-4" /> Kembali ke Produk
+          </Link>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-brand/10 rounded-2xl flex items-center justify-center">
-              <Package className="text-brand h-7 w-7" />
+            <div className="w-12 h-12 bg-brand/10 rounded-2xl flex items-center justify-center">
+              <Box className="text-brand h-6 w-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">
-                Parent Product
-              </p>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                {parentProduct.name}
-              </h1>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Manajemen Varian Item</h1>
+              <p className="text-slate-400 text-sm font-medium">Kelola stok, harga, nama variasi spesifik, dan metrik satuan.</p>
             </div>
           </div>
         </div>
 
-        <ProductItemManager 
-          productId={parentProduct.id}
-          initialItems={data.items}
-        />
-
+        <Suspense fallback={<div className="h-60 bg-white rounded-[32px] animate-pulse" />}>
+          <div className="bg-white rounded-[32px] shadow-sm border border-slate-100 p-6">
+            <ProductItemList
+              initialData={data}
+              meta={meta}
+              productId={productId}
+            />
+          </div>
+        </Suspense>
       </div>
     </main>
   );

@@ -19,7 +19,7 @@ import { deleteProductItem } from '../actions';
 
 interface ItemDeleteDialogProps {
   productId: number;
-  itemId: string;
+  itemId: number;
   itemName: string;
 }
 
@@ -28,7 +28,7 @@ export function ItemDeleteDialog({ productId, itemId, itemName }: ItemDeleteDial
 
   const handleDelete = () => {
     startTransition(async () => {
-      const result = await deleteProductItem(productId, itemId);
+      const result = await deleteProductItem(itemId, productId);
       if (result.success) {
         toast.success(result.message);
       } else {
