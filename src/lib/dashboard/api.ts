@@ -52,9 +52,9 @@ export async function getPublicProducts(filters: FetchProductsParams) {
       next: { revalidate: 0 } // Sesuaikan cache sesuai kebutuhan bisnismu
     });
 
-    // BRUTAL CHECK: Jika API mengembalikan 401 Unauthorized
+    // Storefront publik dapat diakses oleh guest/non-logged-in user
     if (res.status === 401) {
-      redirect('/login');
+      return { products: [], totalPages: 1, totalItems: 0 };
     }
     
     if (!res.ok) throw new Error('Failed to fetch product list');
