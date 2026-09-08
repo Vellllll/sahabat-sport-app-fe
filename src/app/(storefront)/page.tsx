@@ -32,27 +32,32 @@ export default async function StorefrontPage({
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      
-      {/* BRAND HERO BANNER - PREMIUM LOOK */}
-      <div className="bg-gradient-to-r from-brand to-[#0c44ca] text-white py-14 px-4 text-center relative overflow-hidden">
-        {/* Dekorasi background halus opsional */}
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
-        
-        <div className="relative z-10 space-y-2 animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="inline-flex items-center gap-2 text-xs font-black bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full uppercase tracking-widest text-white/90">
-            <ShoppingBag className="h-3.5 w-3.5" /> Official Store
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight uppercase">
-            Sahabat<span className="text-white/80 font-light">Sport</span>
-          </h1>
-          <p className="text-white/70 text-xs md:text-sm font-medium max-w-md mx-auto leading-relaxed">
-            Penyedia alat olahraga original, bersertifikasi resmi, dan berkualitas tinggi untuk performa terbaik Anda.
-          </p>
-        </div>
-      </div>
 
       {/* MAIN CATALOG VIEW */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+        {/* BRAND HERO BANNER - COMPACT */}
+        <div className="relative mb-8 flex items-center gap-4 overflow-hidden rounded-3xl bg-gradient-to-r from-brand to-[#0c44ca] px-5 py-5 text-white sm:px-7 sm:py-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          {/* Dekorasi background halus opsional */}
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
+
+          <span className="relative z-10 hidden h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md sm:flex">
+            <ShoppingBag className="h-5 w-5" />
+          </span>
+
+          <div className="relative z-10 min-w-0">
+            <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/70">
+              <ShoppingBag className="h-3 w-3 sm:hidden" /> Official Store
+            </div>
+            <h1 className="text-xl font-black tracking-tight uppercase sm:text-2xl">
+              Sahabat<span className="font-light text-white/70">Sport</span>
+            </h1>
+            <p className="hidden text-xs font-medium leading-relaxed text-white/70 sm:block sm:max-w-md">
+              Penyedia alat olahraga original, bersertifikasi resmi, dan berkualitas tinggi.
+            </p>
+          </div>
+        </div>
+
         {/* Menggunakan JSON stringify filter sebagai key Suspense agar skeleton terpicu tiap kali user menyaring data */}
         <Suspense key={JSON.stringify(apiFilters)} fallback={<StorefrontSkeleton />}>
           <ProductStorefront 
@@ -81,20 +86,19 @@ function StorefrontSkeleton() {
   return (
     <div className="space-y-8 mt-4">
       {/* Filter Bar Dummy */}
-      <div className="h-20 bg-white border border-slate-100 rounded-3xl w-full animate-pulse" />
+      <div className="h-14 bg-white border border-slate-100 rounded-2xl w-full animate-pulse" />
       
       {/* Product Grid Dummy */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="bg-white rounded-[24px] border border-slate-100/80 overflow-hidden flex flex-col h-full p-0 space-y-4 animate-pulse">
-            <div className="bg-slate-100 aspect-square w-full" />
-            <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-              <div className="space-y-2">
-                <div className="h-3.5 bg-slate-100 rounded-lg w-3/4" />
-                <div className="h-3 bg-slate-100 rounded-md w-1/2" />
-              </div>
-              <div className="h-9 bg-slate-50 rounded-xl w-full" />
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        {[...Array(12)].map((_, i) => (
+          <div key={i} className="flex flex-col bg-white rounded-2xl border border-slate-100 p-3 animate-pulse">
+            <div className="aspect-square w-full rounded-xl bg-slate-100" />
+            <div className="pt-3 flex-1 space-y-2">
+              <div className="h-2.5 bg-slate-100 rounded-md w-1/3" />
+              <div className="h-3.5 bg-slate-100 rounded-lg w-3/4" />
+              <div className="h-3.5 bg-slate-100 rounded-md w-1/2" />
             </div>
+            <div className="mt-3 h-8 bg-slate-50 rounded-lg w-full" />
           </div>
         ))}
       </div>

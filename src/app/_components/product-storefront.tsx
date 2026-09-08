@@ -57,7 +57,7 @@ export default function ProductStorefront({ initialProducts, categories, current
       />
 
       {/* CUSTOMER SHOP GRID */}
-      <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 ${isPending ? 'opacity-40 transition-opacity' : ''}`}>
+      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 ${isPending ? 'opacity-40 transition-opacity' : ''}`}>
         {initialProducts.length > 0 ? (
           initialProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
@@ -88,27 +88,27 @@ function ProductFilters({
   currentFilters, categories, applyFilters, isPending 
 }: any) {
   return (
-    <div className="bg-white p-5 rounded-3xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        
+    <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+
         <div className="relative lg:col-span-2">
-          <Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             placeholder="Cari perlengkapan olahraga..."
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && applyFilters({ q: searchQuery, page: 1 })}
-            className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-2xl outline-none transition-all text-sm font-semibold text-slate-700"
+            className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-xl outline-none transition-all text-xs font-semibold text-slate-700"
           />
         </div>
 
         <div className="relative">
-          <Tag className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
+          <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <select
             value={currentFilters.category}
             onChange={(e) => applyFilters({ category: e.target.value, page: 1 })}
-            className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-2xl outline-none transition-all text-sm font-semibold text-slate-700 appearance-none cursor-pointer"
+            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-xl outline-none transition-all text-xs font-semibold text-slate-700 appearance-none cursor-pointer"
           >
             <option value="">Semua Kategori</option>
             {categories.map((cat: Category) => (
@@ -118,11 +118,11 @@ function ProductFilters({
         </div>
 
         <div className="relative">
-          <ArrowUpDown className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
+          <ArrowUpDown className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
           <select
             value={currentFilters.sort}
             onChange={(e) => applyFilters({ sort: e.target.value, page: 1 })}
-            className="w-full pl-11 pr-10 py-3.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-2xl outline-none transition-all text-sm font-bold text-slate-700 appearance-none cursor-pointer uppercase tracking-wider"
+            className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-xl outline-none transition-all text-xs font-bold text-slate-700 appearance-none cursor-pointer uppercase tracking-wider"
           >
             <option value="latest">Terbaru</option>
             <option value="price_asc">Harga Terendah</option>
@@ -131,32 +131,33 @@ function ProductFilters({
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row items-start md:items-center gap-4 pt-4 border-t border-slate-50 justify-between">
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-2">Rentang Harga:</span>
-          <input
-            type="number"
-            value={minPrice}
-            placeholder="Min Rp"
-            onChange={(e) => setMinPrice(e.target.value)}
-            onBlur={() => applyFilters({ minPrice: minPrice, page: 1 })}
-            className="w-full md:w-36 px-4 py-2.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-xl outline-none transition-all text-xs font-bold text-slate-700"
-          />
-          <span className="text-slate-300 font-bold text-xs">-</span>
-          <input
-            type="number"
-            value={maxPrice}
-            placeholder="Max Rp"
-            onChange={(e) => setMaxPrice(e.target.value)}
-            onBlur={() => applyFilters({ maxPrice: maxPrice, page: 1 })}
-            className="w-full md:w-36 px-4 py-2.5 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-xl outline-none transition-all text-xs font-bold text-slate-700"
-          />
+      <div className="flex flex-col gap-3 pt-3 border-t border-slate-50 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2 w-full md:w-auto md:flex-row md:items-center">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Harga:</span>
+          <div className="grid grid-cols-2 gap-2 md:flex md:items-center">
+            <input
+              type="number"
+              value={minPrice}
+              placeholder="Min Rp"
+              onChange={(e) => setMinPrice(e.target.value)}
+              onBlur={() => applyFilters({ minPrice: minPrice, page: 1 })}
+              className="w-full min-w-0 md:w-28 px-3 py-2 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-lg outline-none transition-all text-xs font-bold text-slate-700"
+            />
+            <input
+              type="number"
+              value={maxPrice}
+              placeholder="Max Rp"
+              onChange={(e) => setMaxPrice(e.target.value)}
+              onBlur={() => applyFilters({ maxPrice: maxPrice, page: 1 })}
+              className="w-full min-w-0 md:w-28 px-3 py-2 bg-slate-50 border border-transparent focus:bg-white focus:border-brand rounded-lg outline-none transition-all text-xs font-bold text-slate-700"
+            />
+          </div>
         </div>
 
         <button
           onClick={() => applyFilters({ q: searchQuery, minPrice, maxPrice, page: 1 })}
           disabled={isPending}
-          className="w-full md:w-auto bg-brand text-white px-8 py-3 rounded-xl font-bold text-xs tracking-widest hover:bg-brand-hover transition-all disabled:opacity-50"
+          className="w-full md:w-auto bg-brand text-white px-6 py-2.5 md:py-2 rounded-lg font-bold text-[11px] tracking-widest hover:bg-brand-hover transition-all disabled:opacity-50"
         >
           {isPending ? "MENCARI..." : "TERAPKAN"}
         </button>
@@ -174,40 +175,36 @@ function ProductCard({ product }: { product: ProductFromAPI }) {
   return (
     <Link
       href={`/product/${product.id}`}
-      className="group bg-white rounded-[24px] border border-slate-100/80 overflow-hidden hover:shadow-[0_16px_40px_rgba(0,0,0,0.04)] hover:border-slate-200/60 transition-all flex flex-col h-full cursor-pointer"
+      className="group flex flex-col h-full bg-white rounded-2xl border border-slate-100 p-3 cursor-pointer"
     >
-      <div className="relative aspect-square w-full bg-slate-50 overflow-hidden flex items-center justify-center border-b border-slate-50 shrink-0">
+      <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-slate-50">
         {product.lowest_pic_url ? (
-          <img 
-            src={product.lowest_pic_url} 
-            alt={product.name} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          <img
+            src={product.lowest_pic_url}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <ImageIcon className="h-8 w-8 text-slate-200" />
+          <div className="w-full h-full flex items-center justify-center">
+            <ImageIcon className="h-8 w-8 text-slate-200" />
+          </div>
         )}
-        
-        <span className="absolute top-3 left-3 text-[9px] font-black bg-white/90 backdrop-blur-sm text-slate-800 px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
-          {product.product_category?.name || "Sport"}
-        </span>
       </div>
 
-      <div className="p-4 flex flex-col flex-1 justify-between gap-3">
-        <div>
-          <h3 className="text-xs md:text-sm font-bold text-slate-700 group-hover:text-brand transition-colors line-clamp-2 leading-snug tracking-tight">
-            {product.name}
-          </h3>
-          <div className="flex items-baseline gap-1 mt-1">
-            {product.lowest_price !== null && <span className="text-[10px] font-bold text-slate-400 uppercase">Mulai</span>}
-            <p className="text-sm md:text-base font-black text-slate-900">
-              {formatRupiah(product.lowest_price)}
-            </p>
-          </div>
-        </div>
+      <div className="pt-3 flex-1 space-y-1">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+          {product.product_category?.name || "Sport"}
+        </p>
+        <h3 className="text-xs md:text-sm font-bold text-slate-700 group-hover:text-brand transition-colors line-clamp-2 leading-snug">
+          {product.name}
+        </h3>
+        <p className="text-sm md:text-base font-black text-slate-900">
+          {formatRupiah(product.lowest_price)}
+        </p>
+      </div>
 
-        <div className="w-full bg-slate-50 text-slate-700 group-hover:bg-brand group-hover:text-white py-2.5 rounded-xl text-[11px] font-bold tracking-wider transition-all flex items-center justify-center gap-2 uppercase">
-          <ShoppingBag className="h-3.5 w-3.5" /> Lihat Detail
-        </div>
+      <div className="mt-3 w-full py-2 rounded-lg border border-slate-100 text-slate-600 group-hover:bg-brand group-hover:border-brand group-hover:text-white text-[11px] font-bold tracking-wider transition-colors flex items-center justify-center gap-1.5 uppercase">
+        <ShoppingBag className="h-3.5 w-3.5" /> Lihat Detail
       </div>
     </Link>
   );
