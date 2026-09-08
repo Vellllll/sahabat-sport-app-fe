@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, Tag, ArrowUpDown, ShoppingBag, ImageIcon, ChevronLeft, ChevronRight, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Search, Tag, ArrowUpDown, ShoppingBag, ImageIcon, SlidersHorizontal, ChevronDown, Loader2 } from "lucide-react";
 import Link from "next/link";
 import type { Category, ProductFromAPI } from "@/types/storefront";
+import { loadMoreProductsAction } from "../(storefront)/actions";
 
 interface Props {
   initialProducts: ProductFromAPI[];
@@ -23,9 +24,16 @@ export default function ProductStorefront({ initialProducts, categories, current
   const [minPrice, setMinPrice] = useState(currentFilters.minPrice);
   const [maxPrice, setMaxPrice] = useState(currentFilters.maxPrice);
 
+  // 🟢 INFINITE SCROLL STATE: Menampung akumulasi produk dari setiap halaman berikutnya
+  const [products, setProducts] = useState(initialProducts);
+  const [page, setPage] = useState(currentFilters.page || 1);
+  const [hasMore, setHasMore] = useState((currentFilters.page || 1) < totalPages);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   const applyFilters = (newParams: Record<string, string | number | null>) => {
     const params = new URLSearchParams(searchParams.toString());
-    
+
     Object.entries(newParams).forEach(([key, value]) => {
       if (value !== null && value !== '') {
         params.set(key, value.toString());
@@ -39,11 +47,50 @@ export default function ProductStorefront({ initialProducts, categories, current
     });
   };
 
+  const loadNextPage = () => {
+    if (!hasMore || isLoadingMore) return;
+
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+
+    startTransition(async () => {
+      const result = await loadMoreProductsAction({
+        q: searchQuery,
+        category: currentFilters.category,
+        minPrice,
+        maxPrice,
+        sort: currentFilters.sort,
+        page: nextPage,
+      });
+
+      setProducts((prev) => [...prev, ...result.products]);
+      setPage(nextPage);
+      setHasMore(nextPage < result.totalPages);
+      setIsLoadingMore(false);
+    });
+  };
+
+  // 🟢 Muat halaman berikutnya begitu sentinel di bawah grid terlihat di viewport
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        loadNextPage();
+      }
+    }, { rootMargin: '400px' });
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, isLoadingMore, page]);
+
   return (
     <div className="space-y-8">
-      
+
       {/* BAR FILTER TOKO ONLINE */}
-      <ProductFilters 
+      <ProductFilters
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         minPrice={minPrice}
@@ -57,24 +104,27 @@ export default function ProductStorefront({ initialProducts, categories, current
       />
 
       {/* CUSTOMER SHOP GRID */}
-      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 ${isPending ? 'opacity-40 transition-opacity' : ''}`}>
-        {initialProducts.length > 0 ? (
-          initialProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 ${isPending && !isLoadingMore ? 'opacity-40 transition-opacity' : ''}`}>
+        {products.length > 0 ? (
+          products.map((product, idx) => (
+            <ProductCard key={`${product.id}-${idx}`} product={product} />
           ))
         ) : (
           <EmptyState />
         )}
       </div>
 
-      {/* STOREFRONT PAGINATION CONTROLS */}
-      {totalPages > 1 && (
-        <Pagination 
-          currentPage={currentFilters.page} 
-          totalPages={totalPages} 
-          applyFilters={applyFilters} 
-          isPending={isPending} 
-        />
+      {/* 🟢 INFINITE SCROLL TRIGGER & STATUS */}
+      {products.length > 0 && (
+        <div ref={sentinelRef} className="flex items-center justify-center py-4">
+          {isLoadingMore ? (
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+              <Loader2 className="h-4 w-4 animate-spin text-brand" /> Memuat produk...
+            </div>
+          ) : !hasMore ? (
+            <p className="text-xs font-medium text-slate-400">Semua {totalItems} produk telah ditampilkan</p>
+          ) : null}
+        </div>
       )}
 
     </div>
@@ -235,26 +285,3 @@ function EmptyState() {
   );
 }
 
-function Pagination({ currentPage, totalPages, applyFilters, isPending }: any) {
-  return (
-    <div className="flex items-center justify-center gap-2 pt-4">
-      <button
-        onClick={() => applyFilters({ page: currentPage - 1 })}
-        disabled={currentPage <= 1 || isPending}
-        className="p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 transition-all disabled:opacity-30 shadow-sm text-slate-600"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <div className="px-5 py-2 rounded-xl bg-white border border-slate-100 shadow-sm">
-        <span className="text-xs font-black text-brand tracking-widest">{currentPage} / {totalPages}</span>
-      </div>
-      <button
-        onClick={() => applyFilters({ page: currentPage + 1 })}
-        disabled={currentPage >= totalPages || isPending}
-        className="p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 transition-all disabled:opacity-30 shadow-sm text-slate-600"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    </div>
-  );
-}
