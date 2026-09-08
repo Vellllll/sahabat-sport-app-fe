@@ -20,7 +20,7 @@ export default function DeleteCategoryButton({ id, name }: Props) {
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="py-3.5 px-6 rounded-2xl font-bold text-xs tracking-widest text-red-500 hover:bg-red-50 transition-all uppercase flex items-center justify-center gap-2"
+        className="py-3.5 px-6 rounded-2xl font-bold text-xs text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
       >
         <Trash2 className="h-4 w-4" /> Hapus
       </button>

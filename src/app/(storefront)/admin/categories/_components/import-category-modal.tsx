@@ -148,7 +148,7 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleCloseModal()}>
-      <DialogContent className="w-full max-w-md bg-white rounded-[32px] shadow-2xl p-8 border border-slate-100 sm:rounded-[32px] gap-0">
+      <DialogContent className="w-full max-w-md bg-white rounded-2xl p-8 border border-slate-100 sm:rounded-2xl gap-0">
         
         {/* Header Modal */}
         <DialogHeader className="text-left mb-6 relative">
@@ -188,7 +188,7 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm font-bold text-slate-800 truncate max-w-[280px]">{selectedFile.name}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <p className="text-[10px] font-bold text-slate-400">
                     {(selectedFile.size / 1024).toFixed(1)} KB • Siap Di-Import
                   </p>
                 </div>
@@ -216,7 +216,7 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
 
           {/* Info Format Template Unduhan */}
           <div className="bg-slate-50/80 p-4 rounded-xl border border-slate-100 text-[11px] font-medium text-slate-500 space-y-1 leading-relaxed">
-            <p className="font-bold text-slate-700 uppercase tracking-wide text-[9px] text-brand">Panduan Format Struktur CSV:</p>
+            <p className="font-bold text-slate-700 text-[9px] text-brand">Panduan Format Struktur CSV:</p>
             <p>1. Baris pertama diisi kolom <code className="bg-white px-1.5 py-0.5 border rounded font-mono text-slate-700 font-bold">name</code></p>
             <p>2. Baris berikutnya diisi nama kategori baru secara vertikal berurutan.</p>
           </div>
@@ -227,7 +227,7 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
               type="button"
               disabled={isPending}
               onClick={handleCloseModal}
-              className="flex-1 py-3.5 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 rounded-2xl text-xs font-bold text-slate-500 uppercase tracking-widest cursor-pointer transition-all text-center"
+              className="flex-1 py-3.5 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 rounded-2xl text-xs font-bold text-slate-500 cursor-pointer transition-all text-center"
             >
               Batal
             </button>
@@ -235,7 +235,7 @@ export default function ImportCategoryModal({ isOpen, onClose }: Props) {
               type="button"
               disabled={isPending || !selectedFile}
               onClick={handleSubmitImport}
-              className="flex-1 bg-brand text-white py-3.5 rounded-2xl font-bold text-xs tracking-widest shadow-lg shadow-brand/10 hover:bg-brand-hover active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-100 disabled:text-slate-300 disabled:shadow-none disabled:cursor-not-allowed uppercase"
+              className="flex-1 bg-brand text-white py-3.5 rounded-2xl font-bold text-xs hover:bg-brand-hover active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed"
             >
               {isPending ? (
                 <>

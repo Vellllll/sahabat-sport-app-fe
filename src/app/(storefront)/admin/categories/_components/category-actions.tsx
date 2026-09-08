@@ -20,7 +20,7 @@ export default function CategoryActions() {
         {/* TOMBOL IMPORT CSV MASSAL (tetap modal) */}
         <button
           onClick={() => setIsImportOpen(true)}
-          className="h-10 px-4 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center gap-2 text-xs font-bold hover:bg-slate-50 transition-all cursor-pointer shadow-sm shadow-slate-100"
+          className="h-10 px-4 bg-white border border-slate-200 text-slate-600 rounded-xl flex items-center justify-center gap-2 text-xs font-bold hover:bg-slate-50 transition-colors cursor-pointer"
         >
           <Upload className="h-4 w-4 text-slate-400" /> Import Massal
         </button>
@@ -28,7 +28,7 @@ export default function CategoryActions() {
         {/* Tombol Tambah -> dedicated page */}
         <Link
           href="/admin/categories/create"
-          className="w-10 h-10 bg-brand text-white rounded-xl flex items-center justify-center shadow-lg shadow-brand/20 hover:bg-brand-hover transition-all cursor-pointer"
+          className="w-10 h-10 bg-brand text-white rounded-xl flex items-center justify-center hover:bg-brand-hover transition-colors cursor-pointer"
         >
           <Plus className="h-5 w-5" />
         </Link>

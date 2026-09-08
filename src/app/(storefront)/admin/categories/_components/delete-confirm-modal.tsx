@@ -43,22 +43,22 @@ export default function DeleteConfirmModal({ isOpen, onClose, item, onDeleted }:
       />
 
       {/* Modal Content */}
-      <div className="relative w-full max-w-sm bg-white rounded-[32px] shadow-2xl p-8 animate-in zoom-in duration-200">
+      <div className="relative w-full max-w-sm bg-white rounded-2xl border border-slate-100 p-6 animate-in zoom-in duration-200">
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6">
-            <AlertTriangle className="h-8 w-8 text-red-500" />
+          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-4">
+            <AlertTriangle className="h-6 w-6 text-red-500" />
           </div>
-          <h2 className="text-xl font-extrabold text-slate-900 mb-2">Hapus Kategori?</h2>
-          <p className="text-slate-500 text-sm leading-relaxed mb-8">
+          <h2 className="text-base font-bold text-slate-900 mb-1.5">Hapus Kategori?</h2>
+          <p className="text-slate-500 text-sm leading-relaxed mb-6">
             Anda akan menghapus <span className="font-bold text-slate-800">"{item.name}"</span>. Data tidak dapat dipulihkan.
           </p>
 
-          <div className="grid grid-cols-2 gap-3 w-full">
+          <div className="grid grid-cols-2 gap-2.5 w-full">
             <button
               type="button"
               disabled={isPending}
               onClick={onClose}
-              className="py-3.5 px-6 rounded-2xl font-bold text-xs tracking-widest text-slate-400 hover:bg-slate-50 transition-all uppercase cursor-pointer disabled:opacity-50"
+              className="py-2.5 px-6 rounded-xl font-bold text-xs text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50"
             >
               Batal
             </button>
@@ -66,7 +66,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, item, onDeleted }:
               type="button"
               disabled={isPending}
               onClick={handleConfirm}
-              className="py-3.5 px-6 rounded-2xl font-bold text-xs tracking-widest bg-red-500 text-white shadow-lg shadow-red-200 hover:bg-red-600 active:scale-95 transition-all uppercase flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="py-2.5 px-6 rounded-xl font-bold text-xs bg-red-500 text-white hover:bg-red-600 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Ya, Hapus'}
             </button>

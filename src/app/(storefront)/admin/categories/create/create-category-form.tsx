@@ -27,7 +27,7 @@ export default function CreateCategoryForm() {
   return (
     <form action={formAction} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="name" className="text-[13px] font-bold text-slate-500 uppercase tracking-wider ml-1">
+        <label htmlFor="name" className="text-xs font-semibold text-slate-500 ml-1">
           Nama Kategori
         </label>
         <input
@@ -47,9 +47,9 @@ export default function CreateCategoryForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full bg-brand text-white py-4 rounded-xl font-bold text-sm shadow-lg shadow-brand/20 hover:bg-brand-hover active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+        className="w-full bg-brand text-white py-3 rounded-xl font-bold text-sm hover:bg-brand-hover active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-60"
       >
-        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'TAMBAH KATEGORI'}
+        {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Tambah Kategori'}
       </button>
     </form>
   );

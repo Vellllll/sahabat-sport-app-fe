@@ -25,19 +25,19 @@ export default async function CategoriesPage({
     });
 
     return (
-        <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 flex justify-center items-start">
-            <div className="w-full max-w-[540px]">
-                <div className="flex items-center justify-between mb-8">
+        <main className="min-h-screen bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">
+            <div className="w-full max-w-3xl mx-auto space-y-6">
+                <div className="flex items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Kategori Produk</h1>
+                        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Kategori Produk</h1>
                         <p className="text-slate-400 text-sm font-medium">Kelola klasifikasi produk Sahabat Sport.</p>
                     </div>
                     {/* 🟢 REFACTOR: Tombol "Tambah" sekarang mengarah ke dedicated page /admin/categories/create */}
                     <CategoryActions />
                 </div>
 
-                <Suspense key={query + currentPage} fallback={<div className="h-40 animate-pulse bg-white rounded-3xl" />}>
-                    <div className="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-100 p-6">
+                <Suspense key={query + currentPage} fallback={<div className="h-40 animate-pulse bg-white rounded-2xl border border-slate-100" />}>
+                    <div className="bg-white rounded-2xl border border-slate-100 p-6">
                         <CategoryListOptimized
                             initialData={categories}
                             totalPages={totalPages}
