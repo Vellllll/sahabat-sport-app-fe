@@ -1,5 +1,5 @@
 // app/(storefront)/shop-profile/_components/shop-detail-view.tsx
-import { Phone, MapPin, Store, Clock, BadgeCheck, Map } from "lucide-react";
+import { Phone, MapPin, Store, Clock } from "lucide-react";
 import { ApiShopProfile } from "@/lib/api/shop-profile";
 
 interface InfoSectionProps {
@@ -10,89 +10,70 @@ interface InfoSectionProps {
 }
 
 export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
-  // 🟢 IMPLEMENTASI DINAMIS: Encode alamat teks agar aman dibaca oleh URL Google Maps
+  // Encode alamat teks agar aman dibaca oleh URL Google Maps
   const encodedAddress = encodeURIComponent(shop.address || "Jakarta, Indonesia");
-  
+
   // Menggunakan URL Embed resmi Google Maps Search Mode agar mencari berdasarkan teks alamat secara real-time
   const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   return (
-    <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-3 duration-500">
-      
-      {/* SECTION 1: HEADER BRAND (FRAMELESS INTRO) */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 pb-10 border-b border-slate-100">
-        {/* Avatar Monogram Lingkaran Tanpa Box */}
-        <div className="h-20 w-20 bg-slate-900 rounded-full flex items-center justify-center text-2xl font-black text-white shrink-0 shadow-sm">
-          {shop.name ? shop.name[0].toUpperCase() : <Store className="h-6 w-6" />}
+    <div className="w-full space-y-8">
+
+      {/* SECTION 1: HEADER BRAND */}
+      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 pb-6 border-b border-slate-100">
+        <div className="h-14 w-14 bg-brand rounded-xl flex items-center justify-center text-lg font-bold text-white shrink-0">
+          {shop.name ? shop.name[0].toUpperCase() : <Store className="h-5 w-5" />}
         </div>
-        
-        <div className="space-y-2 flex-1">
-          <div className="flex flex-col sm:flex-row items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 uppercase">
-              {shop.name}
-            </h1>
-            <span className="inline-flex items-center gap-1 text-[9px] font-black bg-blue-50 text-brand px-2.5 py-1 rounded-md uppercase tracking-wider">
-              <BadgeCheck className="h-3 w-3 fill-brand text-white" /> Authorized Dealer
-            </span>
-          </div>
-          
-          <p className="text-sm font-medium text-slate-500 max-w-xl leading-relaxed">
+
+        <div className="space-y-1.5 flex-1">
+          <h1 className="text-lg font-bold tracking-tight text-slate-900">
+            {shop.name}
+          </h1>
+          <p className="text-sm font-medium text-slate-500 leading-relaxed">
             {shop.description || "Pusat distribusi perlengkapan olahraga original. Kami menyediakan produk bersertifikasi resmi langsung dari mitra brand internasional terkemuka."}
           </p>
         </div>
       </div>
 
       {/* SECTION 2: GRID INFORMASI UTAMA & GOOGLE MAPS INTEGRATION */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-        
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+
         {/* KOLOM KIRI: LOKASI GUDANG & PETA INTEGRASI */}
-        <div className="space-y-6">
-          <InfoSection 
-            icon={<MapPin className="h-4 w-4 text-slate-400" />} 
-            label="Lokasi Gudang & Retail" 
-            value={shop.address} 
+        <div className="space-y-4">
+          <InfoSection
+            icon={<MapPin className="h-3.5 w-3.5 text-slate-400" />}
+            label="Alamat"
+            value={shop.address}
           />
 
-          {/* GOOGLE MAPS PENUNJUK ARAH DINAMIS */}
-          <div className="space-y-2 pt-2">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 pl-0.5">
-              <Map className="h-3.5 w-3.5 text-brand" /> Google Maps Penunjuk Arah
-            </h4>
-            <div className="w-full aspect-video rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 shadow-sm relative group">
-              <iframe
-                src={googleMapsEmbedUrl} // 🌟 SINKRON 100%: Otomatis memetakan pin point berdasarkan alamat database
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen={true}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                className="w-full h-full object-cover select-none"
-              />
-            </div>
+          <div className="w-full aspect-video rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
+            <iframe
+              src={googleMapsEmbedUrl}
+              width="100%"
+              height="100%"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              className="w-full h-full"
+            />
           </div>
         </div>
-        
+
         {/* KOLOM KANAN: HOTLINE & OPERASIONAL JAM */}
-        <div className="space-y-8">
-          <InfoSection 
-            icon={<Phone className="h-4 w-4 text-slate-400" />} 
-            label="Layanan Pelanggan (Hotline)" 
-            value={shop.phone_number} 
-            isLink 
+        <div className="space-y-4">
+          <InfoSection
+            icon={<Phone className="h-3.5 w-3.5 text-slate-400" />}
+            label="Layanan Pelanggan"
+            value={shop.phone_number}
+            isLink
           />
 
-          {/* Jam Operasional Terintegrasi */}
-          <div className="pt-2 space-y-2">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-              <Clock className="h-3.5 w-3.5" /> Jam Operasional
-            </h4>
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-slate-700">Senin - Sabtu (09:00 - 18:00 WIB)</p>
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 uppercase tracking-wider">
-                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Online
-              </span>
-            </div>
+          <div className="space-y-1.5">
+            <h2 className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-slate-400" /> Jam Operasional
+            </h2>
+            <p className="text-sm font-bold text-slate-700">Senin - Sabtu, 09:00 - 18:00 WIB</p>
           </div>
         </div>
 
@@ -104,20 +85,20 @@ export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
 
 function InfoSection({ icon, label, value, isLink }: InfoSectionProps) {
   return (
-    <section className="space-y-2.5">
-      <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+    <section className="space-y-1.5">
+      <h2 className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
         {icon} {label}
       </h2>
-      
+
       {isLink ? (
-        <a 
-          href={`tel:${value}`} 
-          className="text-base font-black text-slate-900 hover:text-brand transition-colors inline-block tracking-tight"
+        <a
+          href={`tel:${value}`}
+          className="text-sm font-bold text-slate-900 hover:text-brand transition-colors inline-block"
         >
           {value}
         </a>
       ) : (
-        <p className="text-sm font-bold text-slate-700 leading-relaxed tracking-tight">
+        <p className="text-sm font-bold text-slate-700 leading-relaxed">
           {value}
         </p>
       )}

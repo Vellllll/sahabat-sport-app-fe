@@ -22,22 +22,20 @@ export default async function ShopProfilePage() {
   }
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-white flex flex-col items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-2xl space-y-12">
-        
-        {/* Tampilan Konten Editorial Utama */}
-        <ShopDetailView shop={shop} />
-        
+    <main className="min-h-[calc(100vh-4rem)] bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-7xl mx-auto space-y-4">
+
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8">
+          <ShopDetailView shop={shop} />
+        </div>
+
         {/* Footer Action Area */}
-        <div className="pt-6 border-t border-slate-100 space-y-4">
+        <div className="max-w-md mx-auto space-y-3">
           <WhatsAppButton phone={shop.phone_number} shopName={shop.name} />
-          
-          {/* Security Confidence Badge */}
-          <div className="flex items-center justify-center gap-1.5 text-slate-300">
-            <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-              Koneksi Enkripsi SSL Jalur Aman Terverifikasi
-            </p>
+
+          <div className="flex items-center justify-center gap-1.5 text-slate-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <p className="text-[11px] font-medium">Koneksi aman terenkripsi SSL</p>
           </div>
         </div>
 

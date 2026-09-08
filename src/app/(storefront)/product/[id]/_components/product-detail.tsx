@@ -3,7 +3,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Check, ShieldCheck, Truck, RotateCcw, ImageIcon, Loader2 } from 'lucide-react';
+import { ShoppingCart, Check, ImageIcon, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { addToCartAction } from '../actions'; 
 import { useCart } from '@/context/cart-context';
@@ -194,22 +194,6 @@ export default function ProductDetail({ productData }: Props) {
                   </>
                 )}
               </button>
-            </div>
-
-            {/* TRUST BADGES */}
-            <div className="grid grid-cols-3 gap-2 pt-2 text-center">
-              <div className="flex flex-col items-center p-3 bg-slate-50/60 rounded-xl border border-slate-100">
-                <ShieldCheck className="h-4 w-4 text-brand mb-1" />
-                <span className="text-[9px] font-black text-slate-700 uppercase tracking-tighter">100% Original</span>
-              </div>
-              <div className="flex flex-col items-center p-3 bg-slate-50/60 rounded-xl border border-slate-100">
-                <Truck className="h-4 w-4 text-brand mb-1" />
-                <span className="text-[9px] font-black text-slate-700 uppercase tracking-tighter">Bebas Ongkir</span>
-              </div>
-              <div className="flex flex-col items-center p-3 bg-slate-50/60 rounded-xl border border-slate-100">
-                <RotateCcw className="h-4 w-4 text-brand mb-1" />
-                <span className="text-[9px] font-black text-slate-700 uppercase tracking-tighter">7 Hari Retur</span>
-              </div>
             </div>
 
           </div>
