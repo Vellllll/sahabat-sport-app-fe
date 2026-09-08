@@ -1,5 +1,5 @@
 // app/(storefront)/layout.tsx
-import { Navbar } from "../_components/navbar";
+import { Sidebar } from "../_components/sidebar";
 import AutoLogout from "../_components/auto-logout";
 import { getOptionalSession } from '@/lib/rbac/guards';
 import { canAccessAdmin } from '@/lib/rbac/permissions';
@@ -14,14 +14,14 @@ export default async function StorefrontLayout({
   const showAdminLink = canAccessAdmin(session?.user.role);
 
   return (
-    <>
+    <div className="md:flex">
       {/* Background poller untuk memantau masa aktif token JWT */}
       <AutoLogout isLoggedIn={isLoggedIn} />
-      
-      {/* 🟢 NAVBAR HANYA MERENDER DI SINI (Halaman dalam grup storefront) */}
-      <Navbar initialLoginStatus={isLoggedIn} showAdminLink={showAdminLink} />
-      
-      <main>{children}</main>
-    </>
+
+      {/* 🟢 SIDEBAR HANYA MERENDER DI SINI (Halaman dalam grup storefront) */}
+      <Sidebar initialLoginStatus={isLoggedIn} showAdminLink={showAdminLink} />
+
+      <main className="min-w-0 flex-1">{children}</main>
+    </div>
   );
 }

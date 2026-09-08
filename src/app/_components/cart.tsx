@@ -8,7 +8,7 @@ import { ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context"; // 🟢 1. IMPORT HOOK GLOBAL CONTEXT BELANJA
 
-export function Cart() {
+export function Cart({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { getCartCount } = useCart(); // 🟢 2. AMBIL FUNGSI HITUNG TOTAL ITEM LIVE
   const [cartCount, setCartCount] = useState<number>(0);
@@ -18,14 +18,15 @@ export function Cart() {
 
   // 🟢 3. SINKRONKAN STATE SETIAP KALI KERANJANG DI-UPDATE ATAU PINDAH HALAMAN
   useEffect(() => {
-    setCartCount(getCartCount()); 
+    setCartCount(getCartCount());
   }, [pathname, getCartCount]);
 
   return (
     <Link
       href="/cart"
       className={cn(
-        "relative h-10 px-3.5 border rounded-xl inline-flex items-center justify-center gap-2 transition-all group cursor-pointer shadow-sm shadow-slate-100/40 select-none",
+        "relative h-10 border rounded-xl inline-flex items-center justify-center gap-2 transition-all group cursor-pointer shadow-sm shadow-slate-100/40 select-none",
+        isCollapsed ? "md:w-10 md:px-0" : "px-3.5",
         isCartPageActive
           ? "border-brand bg-blue-50/20 text-brand"
           : "border-slate-200/80 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900 active:scale-[0.98]"
@@ -33,15 +34,15 @@ export function Cart() {
       title="Buka Keranjang Belanja Anda"
     >
       {/* Ikon Tas Belanja dengan Micro-Animation Hover */}
-      <ShoppingBag 
+      <ShoppingBag
         className={cn(
-          "h-4 w-4 transition-transform group-hover:scale-105", 
+          "h-4 w-4 transition-transform group-hover:scale-105",
           isCartPageActive ? "text-brand" : "text-slate-400 group-hover:text-slate-800"
-        )} 
+        )}
       />
 
       {/* Teks Deskripsi Ringkas */}
-      <span className="text-[11px] font-black uppercase tracking-wider hidden sm:inline-block">
+      <span className={cn("text-[11px] font-black uppercase tracking-wider hidden sm:inline-block", isCollapsed && "md:hidden")}>
         Cart
       </span>
 

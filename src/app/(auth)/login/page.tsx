@@ -351,26 +351,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* 3. COMMERCE FOOTER */}
-      <footer className="border-t border-slate-200/80 bg-white py-5 px-4 sm:px-8 mt-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span className="font-medium text-slate-600">100% Transaksi Aman & Terenkripsi SSL 256-bit</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 text-slate-400">
-            <span>© 2026 SahabatSport Indonesia</span>
-            <span>•</span>
-            <Link href="#" className="hover:text-slate-600 transition-colors">Syarat & Ketentuan</Link>
-            <span>•</span>
-            <Link href="#" className="hover:text-slate-600 transition-colors">Kebijakan Privasi</Link>
-            <span>•</span>
-            <Link href="#" className="hover:text-slate-600 transition-colors">Pusat Bantuan</Link>
-          </div>
-        </div>
-      </footer>
-
     </div>
   )
 }
