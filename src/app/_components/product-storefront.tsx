@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, Tag, ArrowUpDown, ShoppingBag, ImageIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Tag, ArrowUpDown, ShoppingBag, ImageIcon, ChevronLeft, ChevronRight, SlidersHorizontal, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { Category, ProductFromAPI } from "@/types/storefront";
 
@@ -87,8 +87,22 @@ function ProductFilters({
   maxPrice, setMaxPrice, 
   currentFilters, categories, applyFilters, isPending 
 }: any) {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] space-y-3">
+    <div className="bg-white p-3.5 rounded-2xl border border-slate-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)]">
+      <button
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex w-full items-center justify-between md:hidden"
+      >
+        <span className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+          <SlidersHorizontal className="h-4 w-4 text-slate-400" /> Filter
+        </span>
+        <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+
+      <div className={`${isOpen ? "mt-3 space-y-3" : "hidden"} md:mt-0 md:block md:space-y-3`}>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
 
         <div className="relative lg:col-span-2">
@@ -161,6 +175,7 @@ function ProductFilters({
         >
           {isPending ? "MENCARI..." : "TERAPKAN"}
         </button>
+      </div>
       </div>
     </div>
   );
