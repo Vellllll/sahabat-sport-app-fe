@@ -16,7 +16,7 @@ export default async function AdminHubPage() {
 
   return (
     <main className="min-h-screen bg-[#F8FAFC] py-12 px-4 sm:px-6 lg:px-8 animate-in fade-in duration-500">
-      <div className="max-w-[1200px] mx-auto space-y-10">
+      <div className="w-full space-y-10">
         <AdminHubHero
           canManageProducts={canManageProducts}
           canManageCategories={canManageCategories}

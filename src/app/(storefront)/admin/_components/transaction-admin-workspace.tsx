@@ -174,29 +174,29 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
 
   return (
     <div className="space-y-4 max-w-full overflow-hidden px-1">
-      <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 pl-1">
+      <h2 className="text-xs font-bold text-slate-400 flex items-center gap-2 pl-1">
         <ArrowLeftRight className="h-4 w-4 text-slate-400" /> Arus Dokumen Transaksi Masuk
       </h2>
 
-      <div className="bg-white rounded-[24px] md:rounded-[32px] shadow-sm border border-slate-100 p-4 md:p-6">
+      <div className="bg-white rounded-2xl md:rounded-2xl shadow-sm border border-slate-100 p-4 md:p-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full space-y-5">
           
           {/* 🟢 REFACTOR RESPONSIVE TAB BAR: Mengizinkan horizontal scroll otomatis di layar HP */}
           <div className="w-full overflow-x-auto no-scrollbar pb-1">
             <TabsList className="bg-slate-50 p-1 rounded-xl flex min-w-[640px] md:min-w-0 md:grid md:grid-cols-5 gap-1 border border-slate-100">
-              <TabsTrigger value="requested" className="flex-1 text-[11px] md:text-[12px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
+              <TabsTrigger value="requested" className="flex-1 text-[11px] md:text-[12px] font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
                 <PackageOpen className="h-3.5 w-3.5" /> Penyiapan
               </TabsTrigger>
-              <TabsTrigger value="ready" className="flex-1 text-[11px] md:text-[12px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
+              <TabsTrigger value="ready" className="flex-1 text-[11px] md:text-[12px] font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
                 <Store className="h-3.5 w-3.5" /> Siap Diambil
               </TabsTrigger>
-              <TabsTrigger value="paid" className="flex-1 text-[11px] md:text-[12px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
+              <TabsTrigger value="paid" className="flex-1 text-[11px] md:text-[12px] font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:text-emerald-600 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
                 <ShieldCheck className="h-3.5 w-3.5" /> Sudah Lunas
               </TabsTrigger>
-              <TabsTrigger value="sent" className="flex-1 text-[11px] md:text-[12px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
+              <TabsTrigger value="sent" className="flex-1 text-[11px] md:text-[12px] font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
                 <Truck className="h-3.5 w-3.5" /> Terkirim
               </TabsTrigger>
-              <TabsTrigger value="rejected" className="flex-1 text-[11px] md:text-[12px] font-black uppercase tracking-wider rounded-lg data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
+              <TabsTrigger value="rejected" className="flex-1 text-[11px] md:text-[12px] font-bold rounded-lg data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm py-2.5 px-3 flex items-center justify-center gap-1.5 cursor-pointer text-slate-400">
                 <XCircle className="h-3.5 w-3.5" /> Tereject
               </TabsTrigger>
             </TabsList>
@@ -206,7 +206,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
           <div className="relative min-h-[200px]">
             {isTabPending && (
               <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px] flex items-center justify-center z-10 animate-in fade-in duration-100 rounded-xl">
-                <div className="flex items-center gap-2 text-xs font-black text-slate-500 uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
                   <Loader2 className="h-4 w-4 animate-spin text-brand" /> Mengambil Data API...
                 </div>
               </div>
@@ -223,10 +223,10 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                   <Table>
                     <TableHeader className="bg-slate-50/60">
                       <TableRow>
-                        <TableHead className="text-xs font-black uppercase tracking-wider text-slate-400 py-4 px-5">No. Nota</TableHead>
-                        <TableHead className="text-xs font-black uppercase tracking-wider text-slate-400">Tanggal</TableHead>
-                        <TableHead className="text-xs font-black uppercase tracking-wider text-slate-400 text-right">Nominal Tagihan</TableHead>
-                        <TableHead className="text-xs font-black uppercase tracking-wider text-slate-400 text-right px-5">Aksi Dokumen</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-400 py-4 px-5">No. Nota</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-400">Tanggal</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-400 text-right">Nominal Tagihan</TableHead>
+                        <TableHead className="text-xs font-bold text-slate-400 text-right px-5">Aksi Dokumen</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -234,21 +234,21 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                         const isThisLoading = isFetchPending && activeBtnId === trx.id;
                         return (
                           <TableRow key={trx.id} className="hover:bg-slate-50/40 transition-colors">
-                            <TableCell className="text-sm sm:text-base font-black text-slate-900 font-mono py-5 px-5">#{trx.number}</TableCell>
+                            <TableCell className="text-sm sm:text-base font-bold text-slate-900 font-mono py-5 px-5">#{trx.number}</TableCell>
                             <TableCell className="text-xs sm:text-sm font-bold text-slate-500">{formatFullDate(trx.created_at)}</TableCell>
-                            <TableCell className="text-sm sm:text-base font-black text-slate-800 text-right">{formatRupiah(trx.total_amount)}</TableCell>
+                            <TableCell className="text-sm sm:text-base font-bold text-slate-800 text-right">{formatRupiah(trx.total_amount)}</TableCell>
                             <TableCell className="text-right space-x-2 px-5 flex items-center justify-end h-16">
                               <button
                                 type="button"
                                 disabled={isFetchPending}
                                 onClick={() => handleOpenDetail(trx)}
-                                className="inline-flex h-10 px-3.5 items-center gap-1.5 border border-slate-200 hover:bg-slate-50 disabled:bg-slate-50 text-slate-700 disabled:text-slate-400 rounded-xl text-xs font-black uppercase tracking-wide transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed active:scale-[0.98]"
+                                className="inline-flex h-10 px-3.5 items-center gap-1.5 border border-slate-200 hover:bg-slate-50 disabled:bg-slate-50 text-slate-700 disabled:text-slate-400 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed active:scale-[0.98]"
                               >
                                 {isThisLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" /> : <Eye className="h-4 w-4 text-slate-400" />}
                                 Detail
                               </button>
                               {trx.pic_proof_of_transfer_url && (
-                                <a href={trx.pic_proof_of_transfer_url} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 px-3.5 items-center gap-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-black uppercase tracking-wide transition-all shadow-sm active:scale-[0.98]">
+                                <a href={trx.pic_proof_of_transfer_url} target="_blank" rel="noopener noreferrer" className="inline-flex h-10 px-3.5 items-center gap-1.5 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.98]">
                                   <FileImage className="h-4 w-4 text-slate-400" /> Bukti
                                 </a>
                               )}
@@ -268,12 +268,12 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                       <div key={trx.id} className="bg-white p-4 border border-slate-100 rounded-2xl shadow-sm space-y-3.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
                         <div className="flex justify-between items-start gap-2">
                           <div className="space-y-1">
-                            <p className="text-xs font-black uppercase tracking-wider text-slate-400">No. Nota</p>
-                            <p className="text-sm font-black text-slate-900 font-mono">#{trx.number}</p>
+                            <p className="text-xs font-bold text-slate-400">No. Nota</p>
+                            <p className="text-sm font-bold text-slate-900 font-mono">#{trx.number}</p>
                           </div>
                           <div className="text-right space-y-1">
-                            <p className="text-xs font-black uppercase tracking-wider text-slate-400">Nominal Tagihan</p>
-                            <p className="text-sm font-black text-brand font-mono">{formatRupiah(trx.total_amount)}</p>
+                            <p className="text-xs font-bold text-slate-400">Nominal Tagihan</p>
+                            <p className="text-sm font-bold text-brand font-mono">{formatRupiah(trx.total_amount)}</p>
                           </div>
                         </div>
 
@@ -291,7 +291,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                               type="button"
                               disabled={isFetchPending}
                               onClick={() => handleOpenDetail(trx)}
-                              className="h-9 px-3 border border-slate-200 bg-white text-slate-800 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all shadow-sm flex items-center gap-1 cursor-pointer"
+                              className="h-9 px-3 border border-slate-200 bg-white text-slate-800 rounded-xl text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
                             >
                               {isThisLoading ? <Loader2 className="h-3 w-3 animate-spin text-slate-400" /> : <Eye className="h-3.5 w-3.5" />}
                               Detail
@@ -312,7 +312,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
       {/* 📑 DIALOG DETAIL (MENDUKUNG PADDING RESPONSIF PADA LAYAR HP) */}
       {/* ========================================================================= */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="bg-white border-none rounded-[24px] sm:rounded-[32px] p-0 shadow-2xl w-[95vw] max-w-full sm:max-w-2xl lg:max-w-3xl overflow-hidden animate-in fade-in duration-200 max-h-[92vh] flex flex-col">
+        <DialogContent className="bg-white border-none rounded-2xl sm:rounded-2xl p-0 w-[95vw] max-w-full sm:max-w-2xl lg:max-w-3xl overflow-hidden animate-in fade-in duration-200 max-h-[92vh] flex flex-col">
           
           <DialogHeader className="text-left space-y-3 p-5 sm:p-8 pb-4 sm:pb-6 border-b border-slate-100 bg-white shrink-0">
             <div className="flex items-center justify-between gap-4 w-full">
@@ -321,23 +321,23 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
               </div>
 
               {inspectTrx?.is_rejected ? (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 border border-rose-700 text-white text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-sm">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 border border-rose-700 text-white text-[11px] sm:text-xs font-bold shadow-sm">
                   <XCircle className="h-3.5 w-3.5" /> Reject
                 </div>
               ) : inspectTrx?.is_sent ? (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 border border-emerald-700 text-white text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-sm">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 border border-emerald-700 text-white text-[11px] sm:text-xs font-bold shadow-sm">
                   <Truck className="h-3.5 w-3.5" /> Terkirim
                 </div>
               ) : inspectTrx?.is_paid ? (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] sm:text-xs font-black uppercase tracking-wider">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-[11px] sm:text-xs font-bold">
                   <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Lunas
                 </div>
               ) : null}
             </div>
             
             <div className="space-y-1">
-              <DialogTitle className="text-lg sm:text-2xl font-black text-slate-900 uppercase tracking-tight">Rincian Nota Pemesanan</DialogTitle>
-              <DialogDescription className="text-[11px] sm:text-sm font-mono font-bold text-slate-400 uppercase tracking-widest truncate">No. Invoice: {inspectTrx?.number}</DialogDescription>
+              <DialogTitle className="text-lg sm:text-2xl font-bold text-slate-900 tracking-tight">Rincian Nota Pemesanan</DialogTitle>
+              <DialogDescription className="text-[11px] sm:text-sm font-mono font-bold text-slate-400 truncate">No. Invoice: {inspectTrx?.number}</DialogDescription>
             </div>
           </DialogHeader>
 
@@ -345,12 +345,12 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
           <div className="p-5 sm:p-8 pt-4 sm:pt-6 space-y-6 overflow-y-auto flex-1 text-sm sm:text-base">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50/80 p-4 sm:p-5 rounded-2xl border border-slate-100 font-bold text-slate-400">
               <div className="space-y-0.5">
-                <p className="text-[10px] uppercase font-black tracking-wider">Waktu Transaksi</p>
+                <p className="text-[10px] font-bold">Waktu Transaksi</p>
                 <p className="text-slate-800 text-sm sm:text-base">{inspectTrx ? formatFullDate(inspectTrx.created_at) : '-'}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-[10px] uppercase font-black tracking-wider">Kesiapan Logistik</p>
-                <p className={`font-black uppercase tracking-wide text-xs sm:text-sm ${inspectTrx?.is_rejected ? 'text-rose-600' : inspectTrx?.is_sent ? 'text-emerald-600' : inspectTrx?.is_ready ? 'text-indigo-600' : 'text-amber-600'}`}>
+                <p className="text-[10px] font-bold">Kesiapan Logistik</p>
+                <p className={`font-bold text-xs sm:text-sm ${inspectTrx?.is_rejected ? 'text-rose-600' : inspectTrx?.is_sent ? 'text-emerald-600' : inspectTrx?.is_ready ? 'text-indigo-600' : 'text-amber-600'}`}>
                   {inspectTrx?.is_rejected ? '✕ Di-Reject Admin' : inspectTrx?.is_sent ? '✓ Transaksi Selesai' : inspectTrx?.is_ready ? '✓ Siap Diambil' : '⏳ Proses Gudang'}
                 </p>
               </div>
@@ -358,7 +358,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
 
             {inspectTrx?.reject_note && (
               <div className="p-4 sm:p-5 bg-rose-50 border border-rose-100 rounded-2xl space-y-1 text-xs sm:text-sm shadow-sm">
-                <p className="text-[10px] font-black uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
+                <p className="text-[10px] font-bold text-rose-500 flex items-center gap-1.5">
                   <XCircle className="h-3.5 w-3.5" /> Alasan Pembatalan / Reject Note
                 </p>
                 <p className="text-rose-900 font-extrabold normal-case leading-relaxed">"{inspectTrx.reject_note}"</p>
@@ -366,7 +366,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
             )}
 
             <div className="space-y-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 pl-0.5">Daftar Produk Dibeli</p>
+              <p className="text-[10px] font-bold text-slate-400 pl-0.5">Daftar Produk Dibeli</p>
               {inspectTrx?.items && inspectTrx.items.length > 0 ? (
                 <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl px-4 sm:px-6 bg-white shadow-sm">
                   {inspectTrx.items.map((subItem: any, idx: number) => {
@@ -374,10 +374,10 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                     return (
                       <div key={idx} className="py-4 flex justify-between items-center gap-4 text-xs sm:text-base hover:bg-slate-50/50 transition-colors">
                         <div className="space-y-0.5 min-w-0 flex-1">
-                          <p className="font-black text-slate-800 uppercase tracking-tight text-sm sm:text-lg truncate">{subItem.product_item?.name || 'Varian Produk'}</p>
+                          <p className="font-bold text-slate-800 tracking-tight text-sm sm:text-lg truncate">{subItem.product_item?.name || 'Varian Produk'}</p>
                           <p className="text-[11px] sm:text-xs text-slate-400 font-extrabold">{subItem.count} pcs x {formatRupiah(itemPrice)}</p>
                         </div>
-                        <p className="font-black text-slate-900 font-mono text-right shrink-0 text-sm sm:text-base">{formatRupiah(itemPrice * subItem.count)}</p>
+                        <p className="font-bold text-slate-900 font-mono text-right shrink-0 text-sm sm:text-base">{formatRupiah(itemPrice * subItem.count)}</p>
                       </div>
                     );
                   })}
@@ -391,15 +391,15 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
           {/* 🟢 REFACTOR BOTTOM ACTIONS: Menumpuk vertikal otomatis jika dijalankan di layar HP */}
           <div className="p-5 sm:p-8 py-4 sm:py-6 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
             <div className="space-y-0.5 text-center sm:text-left">
-              <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Total Nilai Transaksi</p>
+              <p className="text-[10px] font-bold text-slate-400">Total Nilai Transaksi</p>
               <div className="flex items-baseline gap-2 justify-center sm:justify-start">
-                <p className="text-xl sm:text-3xl font-black text-brand tracking-tight">{formatRupiah(calculatedGrandTotal)}</p>
+                <p className="text-xl sm:text-3xl font-bold text-brand tracking-tight">{formatRupiah(calculatedGrandTotal)}</p>
                 {inspectTrx?.is_rejected ? (
-                  <span className="text-[9px] font-black uppercase text-white bg-rose-600 px-1.5 py-0.5 rounded font-sans tracking-wider">REJECTED</span>
+                  <span className="text-[9px] font-bold text-white bg-rose-600 px-1.5 py-0.5 rounded font-sans">REJECTED</span>
                 ) : inspectTrx?.is_sent ? (
-                  <span className="text-[9px] font-black uppercase text-white bg-emerald-600 px-1.5 py-0.5 rounded font-sans tracking-wider">TERKIRIM</span>
+                  <span className="text-[9px] font-bold text-white bg-emerald-600 px-1.5 py-0.5 rounded font-sans">TERKIRIM</span>
                 ) : inspectTrx?.is_paid ? (
-                  <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-100/60 px-1.5 py-0.5 rounded font-sans tracking-wider">LUNAS</span>
+                  <span className="text-[9px] font-bold text-emerald-600 bg-emerald-100/60 px-1.5 py-0.5 rounded font-sans">LUNAS</span>
                 ) : null}
               </div>
             </div>
@@ -411,7 +411,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                   <button
                     type="button"
                     onClick={() => setIsRejectAlertOpen(true)}
-                    className="w-full sm:w-auto h-12 px-5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto h-12 px-5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <XCircle className="h-4 w-4 text-rose-500" /> Reject
                   </button>
@@ -419,7 +419,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                   <button
                     type="button"
                     onClick={() => setIsReadyAlertOpen(true)}
-                    className="w-full sm:w-auto h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto h-12 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <PackageCheck className="h-4 w-4" /> Set Ready
                   </button>
@@ -430,13 +430,13 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                 <button
                   type="button"
                   onClick={() => setIsShipAlertOpen(true)}
-                  className="w-full sm:w-auto h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-auto h-12 px-6 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Truck className="h-4 w-4" /> Kirim / Selesai
                 </button>
               )}
 
-              <button type="button" onClick={() => { setIsDetailOpen(false); setInspectTrx(null); }} className="w-full sm:w-auto h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all shadow-lg cursor-pointer">Tutup</button>
+              <button type="button" onClick={() => { setIsDetailOpen(false); setInspectTrx(null); }} className="w-full sm:w-auto h-12 px-8 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer">Tutup</button>
             </div>
           </div>
         </DialogContent>
@@ -448,19 +448,19 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
       
       {/* AlertDialog: Set Ready */}
       <AlertDialog open={isReadyAlertOpen} onOpenChange={setIsReadyAlertOpen}>
-        <AlertDialogContent className="bg-white border-none rounded-[24px] p-5 sm:p-8 shadow-2xl max-w-[92vw] sm:max-w-lg animate-in fade-in zoom-in-95 duration-200">
+        <AlertDialogContent className="bg-white border-none rounded-2xl p-5 sm:p-8 max-w-[92vw] sm:max-w-lg animate-in fade-in zoom-in-95 duration-200">
           <AlertDialogHeader className="text-left space-y-3">
             <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500">
               <AlertTriangle className="h-5 w-5" />
             </div>
-            <AlertDialogTitle className="text-base sm:text-xl font-black text-slate-900 uppercase tracking-tight">Konfirmasi Pesanan Siap?</AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">Konfirmasi Pesanan Siap?</AlertDialogTitle>
             <AlertDialogDescription className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed normal-case">
               Apakah Anda yakin bahwa semua produk fisik untuk nota pesanan <strong className="font-extrabold text-slate-900">#{inspectTrx?.number}</strong> telah selesai dikemas dan <strong className="text-indigo-600">siap diambil pembeli</strong>?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 flex flex-row items-center gap-2 justify-end">
-            <AlertDialogCancel className="h-10 px-4 bg-slate-50 hover:bg-slate-100 border-none text-slate-600 rounded-xl text-xs font-bold uppercase cursor-pointer mt-0" onClick={() => setIsReadyAlertOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction disabled={isReadyPending} onClick={handleSetTransactionReady} className="h-10 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5 cursor-pointer">
+            <AlertDialogCancel className="h-10 px-4 bg-slate-50 hover:bg-slate-100 border-none text-slate-600 rounded-xl text-xs font-bold cursor-pointer mt-0" onClick={() => setIsReadyAlertOpen(false)}>Batal</AlertDialogCancel>
+            <AlertDialogAction disabled={isReadyPending} onClick={handleSetTransactionReady} className="h-10 px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
               {isReadyPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Ya, Siap'}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -469,19 +469,19 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
 
       {/* AlertDialog: Set Shipped */}
       <AlertDialog open={isShipAlertOpen} onOpenChange={setIsShipAlertOpen}>
-        <AlertDialogContent className="bg-white border-none rounded-[24px] p-5 sm:p-8 shadow-2xl max-w-[92vw] sm:max-w-lg animate-in fade-in zoom-in-95 duration-200">
+        <AlertDialogContent className="bg-white border-none rounded-2xl p-5 sm:p-8 max-w-[92vw] sm:max-w-lg animate-in fade-in zoom-in-95 duration-200">
           <AlertDialogHeader className="text-left space-y-3">
             <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <Truck className="h-5 w-5" />
             </div>
-            <AlertDialogTitle className="text-base sm:text-xl font-black text-slate-900 uppercase tracking-tight">Konfirmasi Pengiriman Produk?</AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">Konfirmasi Pengiriman Produk?</AlertDialogTitle>
             <AlertDialogDescription className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed normal-case">
               Apakah Anda menyatakan bahwa barang belanjaan untuk nomor transaksi <strong className="font-extrabold text-slate-900">#{inspectTrx?.number}</strong> secara fisik <strong className="text-emerald-600">telah diserahkan ke kurir / dibawa pulang</strong>?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-6 flex flex-row items-center gap-2 justify-end">
-            <AlertDialogCancel className="h-10 px-4 bg-slate-50 hover:bg-slate-100 border-none text-slate-600 rounded-xl text-xs font-bold uppercase cursor-pointer mt-0" onClick={() => setIsShipAlertOpen(false)}>Batal</AlertDialogCancel>
-            <AlertDialogAction disabled={isShipPending} onClick={handleSetTransactionShipped} className="h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5 cursor-pointer">
+            <AlertDialogCancel className="h-10 px-4 bg-slate-50 hover:bg-slate-100 border-none text-slate-600 rounded-xl text-xs font-bold cursor-pointer mt-0" onClick={() => setIsShipAlertOpen(false)}>Batal</AlertDialogCancel>
+            <AlertDialogAction disabled={isShipPending} onClick={handleSetTransactionShipped} className="h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
               {isShipPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Ya, Selesai'}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -490,12 +490,12 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
 
       {/* AlertDialog: Reject */}
       <AlertDialog open={isRejectAlertOpen} onOpenChange={setIsRejectAlertOpen}>
-        <AlertDialogContent className="bg-white border-none rounded-[24px] p-5 sm:p-8 shadow-2xl max-w-[92vw] sm:max-w-lg animate-in fade-in zoom-in-95 duration-200">
+        <AlertDialogContent className="bg-white border-none rounded-2xl p-5 sm:p-8 max-w-[92vw] sm:max-w-lg animate-in fade-in zoom-in-95 duration-200">
           <AlertDialogHeader className="text-left space-y-3">
             <div className="h-10 w-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
               <XCircle className="h-5 w-5" />
             </div>
-            <AlertDialogTitle className="text-base sm:text-xl font-black text-slate-900 uppercase tracking-tight">Tolak Transaksi Masuk?</AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-xl font-bold text-slate-900 tracking-tight">Tolak Transaksi Masuk?</AlertDialogTitle>
             <AlertDialogDescription className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed normal-case">
               Apakah Anda yakin ingin membatalkan pesanan <strong className="font-extrabold text-slate-900">#{inspectTrx?.number}</strong>? Berikan alasan penolakan wajib di bawah ini.
             </AlertDialogDescription>
@@ -512,8 +512,8 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
           </div>
 
           <AlertDialogFooter className="mt-4 flex flex-row items-center gap-2 justify-end">
-            <AlertDialogCancel className="h-10 px-4 bg-slate-50 hover:bg-slate-100 border-none text-slate-600 rounded-xl text-xs font-bold uppercase cursor-pointer mt-0" onClick={() => { setIsRejectAlertOpen(false); setRejectNote(''); }}>Batal</AlertDialogCancel>
-            <AlertDialogAction disabled={isRejectPending || !rejectNote.trim()} onClick={handleRejectTransaction} className="h-10 px-5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-100 text-white disabled:text-slate-400 rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed">
+            <AlertDialogCancel className="h-10 px-4 bg-slate-50 hover:bg-slate-100 border-none text-slate-600 rounded-xl text-xs font-bold cursor-pointer mt-0" onClick={() => { setIsRejectAlertOpen(false); setRejectNote(''); }}>Batal</AlertDialogCancel>
+            <AlertDialogAction disabled={isRejectPending || !rejectNote.trim()} onClick={handleRejectTransaction} className="h-10 px-5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-100 text-white disabled:text-slate-400 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:cursor-not-allowed">
               {isRejectPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Ya, Tolak'}
             </AlertDialogAction>
           </AlertDialogFooter>
