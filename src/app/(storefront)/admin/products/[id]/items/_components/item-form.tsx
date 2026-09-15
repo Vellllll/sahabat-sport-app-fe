@@ -27,6 +27,7 @@ export function ItemForm({ productId, initialData, units }: ItemFormProps) {
     const router = useRouter();
     const [uploadedPicUrl, setUploadedPicUrl] = useState(initialData?.pic_url || "");
     const [isDisplayed, setIsDisplayed] = useState(initialData ? initialData.is_displayed : true);
+    const [pictureError, setPictureError] = useState<string | null>(null);
 
     const formatDisplay = (value: string | number | undefined): string => {
         if (value === undefined || value === null) return '';
@@ -85,6 +86,15 @@ export function ItemForm({ productId, initialData, units }: ItemFormProps) {
         reader.onload = () => setUploadedPicUrl(String(reader.result ?? ""));
         reader.onerror = () => toast.error("Gagal membaca file gambar.");
         reader.readAsDataURL(file);
+        setPictureError(null);
+    };
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        if (!uploadedPicUrl) {
+            e.preventDefault();
+            setPictureError("Foto produk wajib diunggah sebelum menyimpan varian.");
+            toast.error("Foto produk wajib diunggah.");
+        }
     };
 
     return (
@@ -117,7 +127,7 @@ export function ItemForm({ productId, initialData, units }: ItemFormProps) {
                 </div>
             )}
 
-            <form action={formAction} className="space-y-6">
+            <form action={formAction} onSubmit={handleSubmit} className="space-y-6">
                 <input type="hidden" name="product_id" value={productId} />
                 <input type="hidden" name="pic_url" value={uploadedPicUrl} />
                 <input type="hidden" name="is_displayed" value={isDisplayed ? "true" : "false"} />
@@ -186,11 +196,14 @@ export function ItemForm({ productId, initialData, units }: ItemFormProps) {
                 </div>
 
                 <div className="space-y-1.5">
-                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Foto Produk</Label>
+                    <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                        Foto Produk <span className="text-red-500">*</span>
+                    </Label>
                     <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
                         <input
                             type="file"
                             accept="image/*"
+                            required={!initialData}
                             disabled={isPending}
                             onChange={handleImageUpload}
                             className="w-full text-xs font-semibold text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-white file:border file:border-slate-200 file:px-4 file:py-2 hover:file:bg-slate-100 disabled:opacity-50 cursor-pointer"
@@ -202,7 +215,9 @@ export function ItemForm({ productId, initialData, units }: ItemFormProps) {
                                 <ImageIcon className="h-6 w-6 text-slate-300" />
                             </div>
                         )}
-                        {state.errors?.pic_url && <p className="text-[10px] font-bold text-red-500 mt-2">{state.errors.pic_url[0]}</p>}
+                        {(pictureError || state.errors?.pic_url) && (
+                            <p className="text-[10px] font-bold text-red-500 mt-2">{pictureError ?? state.errors?.pic_url?.[0]}</p>
+                        )}
                     </div>
                 </div>
 

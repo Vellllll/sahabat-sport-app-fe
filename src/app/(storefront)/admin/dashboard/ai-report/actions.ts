@@ -9,20 +9,16 @@ export interface ChatApiResponse {
 }
 
 export async function sendQueryToDatabaseAgent(
-  token: string,
   message: string
 ): Promise<ChatApiResponse | null> {
   try {
     const endpoint = '/chat/query';
 
-    // 🟢 REFACTOR: Kirim object literal murni karena serverApiFetch akan men-stringify ini secara otomatis
+    // serverApiFetch attaches the real admin session token from cookies automatically
     const json = await serverApiFetch<ChatApiResponse>(endpoint, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: { message }, // 🌟 DIUBAH DI SINI (Tanpa JSON.stringify)
-    } as any);
+      body: { message },
+    });
 
     return json;
   } catch (error) {

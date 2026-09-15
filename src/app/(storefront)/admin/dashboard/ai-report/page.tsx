@@ -18,8 +18,6 @@ interface Message {
 }
 
 export default function AdminAiChatAgentPage() {
-    const token = "DUMMY_OR_INJECTED_ADMIN_TOKEN";
-
     const [messages, setMessages] = useState<Message[]>([
         {
             id: 'welcome',
@@ -95,7 +93,7 @@ export default function AdminAiChatAgentPage() {
         setIsLoading(true);
 
         // 2. Tembak API /chat/query ke backend NestJS
-        const response = await sendQueryToDatabaseAgent(token, userText);
+        const response = await sendQueryToDatabaseAgent(userText);
 
         if (response && response.status === 201) {
             // 3. Jalankan efek mengetik. 
