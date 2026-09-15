@@ -59,35 +59,55 @@ export default function CategoryListOptimized({ initialData, totalPages, current
             </div>
 
             {/* List Area */}
-            <div className={`space-y-2 min-h-[300px] ${isPending ? 'opacity-50' : 'opacity-100 transition-opacity'}`}>
-                {initialData.map((cat) => (
-                    <div key={cat.id} className="group flex items-center justify-between p-3.5 bg-white border border-slate-100 rounded-xl hover:border-brand/30 transition-colors">
-                        <Link href={`/admin/categories/${cat.id}`} className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:bg-brand/5 transition-colors shrink-0">
-                                <Tag className="h-4 w-4" />
-                            </div>
-                            <div className="min-w-0">
-                                <h3 className="text-sm font-bold text-slate-700 leading-tight truncate">{cat.name}</h3>
-                            </div>
-                        </Link>
-
-                        {/* Action Buttons (Muncul Saat Hover) */}
-                        <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Link
-                                href={`/admin/categories/${cat.id}/edit`}
-                                className="p-2 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-lg transition-colors"
-                            >
-                                <Edit2 className="h-4 w-4" />
-                            </Link>
-                            <button
-                                onClick={() => setDeleteItem(cat)}
-                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
-                        </div>
-                    </div>
-                ))}
+            <div className={`min-h-[300px] overflow-x-auto rounded-2xl border border-slate-100 ${isPending ? 'opacity-50' : 'opacity-100 transition-opacity'}`}>
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-slate-100 bg-slate-50/60">
+                            <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Kategori</th>
+                            <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">ID</th>
+                            <th className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {initialData.length > 0 ? (
+                            initialData.map((cat) => (
+                                <tr key={cat.id} className="group border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition-colors">
+                                    <td className="px-5 py-3.5">
+                                        <Link href={`/admin/categories/${cat.id}`} className="flex items-center gap-3 min-w-0">
+                                            <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:bg-brand/5 transition-colors shrink-0">
+                                                <Tag className="h-4 w-4" />
+                                            </div>
+                                            <h3 className="text-sm font-bold text-slate-700 leading-tight truncate">{cat.name}</h3>
+                                        </Link>
+                                    </td>
+                                    <td className="px-5 py-3.5 text-xs font-mono text-slate-400">#{cat.id}</td>
+                                    <td className="px-5 py-3.5">
+                                        <div className="flex items-center justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Link
+                                                href={`/admin/categories/${cat.id}/edit`}
+                                                className="p-2 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-lg transition-colors"
+                                            >
+                                                <Edit2 className="h-4 w-4" />
+                                            </Link>
+                                            <button
+                                                onClick={() => setDeleteItem(cat)}
+                                                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={3} className="py-16 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                                    Kategori Tidak Ditemukan
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
             </div>
 
             {/* Pagination & Limit Control */}

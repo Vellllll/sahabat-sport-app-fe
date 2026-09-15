@@ -31,32 +31,51 @@ export default function UnitListOptimized({ initialData, totalPages, currentPage
 
   return (
     <div className="space-y-6 relative">
-      <div className={`space-y-3 min-h-[300px] ${isPending ? 'opacity-50' : 'opacity-100 transition-opacity'}`}>
-        {initialData.length > 0 ? (
-          initialData.map((unit) => (
-            <div key={unit.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:border-brand/30 hover:shadow-md transition-all gap-4">
-              <div className="flex flex-col gap-1.5">
-                <h3 className="text-sm font-bold text-slate-800">{unit.name}</h3>
-                <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-wider w-max">
-                  <Box className="h-3 w-3" /> Qty: {unit.quantity}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                <button onClick={() => setEditingUnit(unit)} className="p-2.5 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all">
-                  <Edit2 className="h-4 w-4" />
-                </button>
-                <button onClick={() => setDeletingUnit(unit)} className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-16 text-slate-400 text-xs font-bold uppercase tracking-widest bg-slate-50 rounded-[24px] border-2 border-dashed border-slate-100">
-            Data Satuan Kosong
-          </div>
-        )}
+      <div className={`min-h-[300px] overflow-x-auto rounded-2xl border border-slate-100 ${isPending ? 'opacity-50' : 'opacity-100 transition-opacity'}`}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/60">
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Satuan</th>
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Kuantitas Base</th>
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">ID</th>
+              <th className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {initialData.length > 0 ? (
+              initialData.map((unit) => (
+                <tr key={unit.id} className="group border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition-colors">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-brand group-hover:bg-brand/5 transition-colors shrink-0">
+                        <Box className="h-4 w-4" />
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-800">{unit.name}</h3>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3.5 text-sm font-semibold text-slate-600">{unit.quantity}</td>
+                  <td className="px-5 py-3.5 text-xs font-mono text-slate-400">#{unit.id}</td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => setEditingUnit(unit)} className="p-2.5 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all">
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => setDeletingUnit(unit)} className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="py-16 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  Data Satuan Kosong
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination Controls */}

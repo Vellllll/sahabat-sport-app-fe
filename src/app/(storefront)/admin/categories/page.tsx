@@ -1,4 +1,6 @@
 // app/admin/categories/page.tsx
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { getAllCategories } from '@/lib/api';
 import CategoryListOptimized from './_components/category-list';
 import CategoryActions from './_components/category-actions';
@@ -25,8 +27,12 @@ export default async function CategoriesPage({
     });
 
     return (
-        <main className="min-h-screen bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">
-            <div className="w-full max-w-3xl mx-auto space-y-6">
+        <main className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
+            <div className="w-full space-y-6">
+                <Link href="/admin" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-widest">
+                    <ArrowLeft className="h-4 w-4" /> Kembali ke Hub Administrasi
+                </Link>
+
                 <div className="flex items-center justify-between gap-4">
                     <div>
                         <h1 className="text-xl font-bold text-slate-900 tracking-tight">Kategori Produk</h1>
@@ -36,8 +42,8 @@ export default async function CategoriesPage({
                     <CategoryActions />
                 </div>
 
-                <Suspense key={query + currentPage} fallback={<div className="h-40 animate-pulse bg-white rounded-2xl border border-slate-100" />}>
-                    <div className="bg-white rounded-2xl border border-slate-100 p-6">
+                <Suspense key={query + currentPage} fallback={<div className="h-40 animate-pulse bg-white rounded-[32px] border border-slate-100" />}>
+                    <div className="bg-white rounded-[32px] border border-slate-100 shadow-sm p-6">
                         <CategoryListOptimized
                             initialData={categories}
                             totalPages={totalPages}

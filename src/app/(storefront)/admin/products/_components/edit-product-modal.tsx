@@ -7,7 +7,7 @@ import { ProductFormState, updateProduct, getCategories } from '../actions';
 interface Product {
   id: string;
   name: string;
-  product_category_id?: string;
+  product_category_id?: string | null;
   is_displayed: boolean;
   product_category?: {
     id?: string | number;

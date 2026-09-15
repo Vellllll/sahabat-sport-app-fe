@@ -1,3 +1,3 @@
 // lib/api.ts
 
-export { getProducts } from "./server-api";
+export { getProducts, getProductsWithSummary } from "./server-api";

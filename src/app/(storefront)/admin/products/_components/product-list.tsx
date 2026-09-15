@@ -15,9 +15,11 @@ import {
   Tag,
   ListFilter,
   PackageOpen,
+  ImageIcon,
 } from "lucide-react";
 import EditProductModal from "./edit-product-modal";
 import DeleteProductModal from "./delete-product-modal";
+import { formatRupiah } from "@/lib/utils";
 
 interface Category {
   id: string;
@@ -27,11 +29,16 @@ interface Category {
 interface Product {
   id: string;
   name: string;
-  product_category_id?: string;
+  product_category_id?: string | null;
   is_displayed: boolean;
   product_category?: {
     name: string;
   };
+  thumbnail?: string | null;
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  totalStock?: number;
+  variantCount?: number;
 }
 
 interface Props {
@@ -130,67 +137,108 @@ export default function ProductListOptimized({
       </div>
 
       {/* LIST AREA */}
-      <div className={`space-y-3 min-h-[400px] ${isPending ? "opacity-50" : "opacity-100 transition-opacity"}`}>
-        {initialData.length > 0 ? (
-          initialData.map((product) => (
-            <div
-              key={product.id}
-              className="group flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-100 rounded-2xl hover:border-brand/30 hover:shadow-md transition-all gap-4"
-            >
-              <div className="flex flex-col gap-1.5">
-                <h3 className="text-sm font-bold text-slate-800">{product.name}</h3>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-wider">
-                    <Tag className="h-3 w-3" />
-                    {product.product_category?.name || "Tanpa Kategori"}
-                  </div>
-                  {product.is_displayed ? (
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md uppercase tracking-wider">
-                      <Eye className="h-3 w-3" /> Ditampilkan
+      <div className={`min-h-[400px] overflow-x-auto rounded-2xl border border-slate-100 ${isPending ? "opacity-50" : "opacity-100 transition-opacity"}`}>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-slate-100 bg-slate-50/60">
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Produk</th>
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Kategori</th>
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Harga</th>
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Stok</th>
+              <th className="px-5 py-3.5 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+              <th className="px-5 py-3.5 text-right text-[10px] font-black uppercase tracking-widest text-slate-400">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {initialData.length > 0 ? (
+              initialData.map((product) => (
+                <tr
+                  key={product.id}
+                  className="group border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition-colors"
+                >
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-100 overflow-hidden flex items-center justify-center shrink-0">
+                        {product.thumbnail ? (
+                          <img src={product.thumbnail} alt={product.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4 text-slate-300" />
+                        )}
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-800 truncate">{product.name}</h3>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md uppercase tracking-wider">
-                      <EyeOff className="h-3 w-3" /> Disembunyikan
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-1 w-max text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md uppercase tracking-wider">
+                      <Tag className="h-3 w-3" />
+                      {product.product_category?.name || "Tanpa Kategori"}
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* ACTION BUTTONS */}
-              <div className="flex items-center gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-                <Link
-                  href={`/admin/products/${product.id}/items`}
-                  title="Kelola Item Produk"
-                  className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
-                >
-                  <PackageOpen className="h-4 w-4" />
-                </Link>
-                <button
-                  onClick={() => setEditingProduct(product)}
-                  title="Edit Produk"
-                  className="p-2.5 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </button>
-
-                {/* UBAH TOMBOL HAPUS INI */}
-                <button
-                  onClick={() => setDeletingProduct(product)}
-                  title="Hapus Produk"
-                  className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="text-center py-20 bg-slate-50 rounded-[24px] border-2 border-dashed border-slate-100">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-              Produk Tidak Ditemukan
-            </p>
-          </div>
-        )}
+                  </td>
+                  <td className="px-5 py-3.5 text-sm font-semibold text-slate-700 whitespace-nowrap">
+                    {product.minPrice == null ? (
+                      <span className="text-slate-300">—</span>
+                    ) : product.minPrice === product.maxPrice ? (
+                      formatRupiah(product.minPrice)
+                    ) : (
+                      `${formatRupiah(product.minPrice)} – ${formatRupiah(product.maxPrice ?? product.minPrice)}`
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5 text-sm font-semibold">
+                    {product.variantCount ? (
+                      <span className={(product.totalStock ?? 0) > 0 ? "text-emerald-600" : "text-red-500"}>
+                        {product.totalStock}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">—</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {product.is_displayed ? (
+                      <div className="flex items-center gap-1 w-max text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md uppercase tracking-wider">
+                        <Eye className="h-3 w-3" /> Ditampilkan
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1 w-max text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md uppercase tracking-wider">
+                        <EyeOff className="h-3 w-3" /> Disembunyikan
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Link
+                        href={`/admin/products/${product.id}/items`}
+                        title="Kelola Item Produk"
+                        className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all"
+                      >
+                        <PackageOpen className="h-4 w-4" />
+                      </Link>
+                      <button
+                        onClick={() => setEditingProduct(product)}
+                        title="Edit Produk"
+                        className="p-2.5 text-slate-400 hover:text-brand hover:bg-brand/5 rounded-xl transition-all"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingProduct(product)}
+                        title="Hapus Produk"
+                        className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="py-20 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                  Produk Tidak Ditemukan
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* PAGINATION CONTROLS */}
