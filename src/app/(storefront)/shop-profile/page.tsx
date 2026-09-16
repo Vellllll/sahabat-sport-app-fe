@@ -23,19 +23,22 @@ export default async function ShopProfilePage() {
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-[#F8FAFC] py-8 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-7xl mx-auto space-y-4">
+      <div className="w-full max-w-7xl mx-auto space-y-6">
 
-        <div className="bg-white rounded-2xl border border-slate-100 p-6 md:p-8">
-          <ShopDetailView shop={shop} />
-        </div>
+        <ShopDetailView shop={shop} />
 
         {/* Footer Action Area */}
-        <div className="max-w-md mx-auto space-y-3">
-          <WhatsAppButton phone={shop.phone_number} shopName={shop.name} />
-
-          <div className="flex items-center justify-center gap-1.5 text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <p className="text-[11px] font-medium">Koneksi aman terenkripsi SSL</p>
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div className="mb-4 sm:mb-0">
+            <h2 className="text-sm font-bold text-slate-800">Butuh bantuan lebih lanjut?</h2>
+            <p className="text-xs font-medium text-slate-400">Tim kami siap membantu konsultasi produk via WhatsApp.</p>
+          </div>
+          <div className="space-y-2 sm:w-64 sm:shrink-0">
+            <WhatsAppButton phone={shop.phone_number} shopName={shop.name} />
+            <div className="flex items-center justify-center gap-1.5 text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <p className="text-[11px] font-medium">Koneksi aman terenkripsi SSL</p>
+            </div>
           </div>
         </div>
 

@@ -2,13 +2,6 @@
 import { Phone, MapPin, Store, Clock } from "lucide-react";
 import { ApiShopProfile } from "@/lib/api/shop-profile";
 
-interface InfoSectionProps {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  isLink?: boolean;
-}
-
 export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
   // Encode alamat teks agar aman dibaca oleh URL Google Maps
   const encodedAddress = encodeURIComponent(shop.address || "Jakarta, Indonesia");
@@ -17,91 +10,72 @@ export function ShopDetailView({ shop }: { shop: ApiShopProfile }) {
   const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
 
-      {/* SECTION 1: HEADER BRAND */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-4 pb-6 border-b border-slate-100">
-        <div className="h-14 w-14 bg-brand rounded-xl flex items-center justify-center text-lg font-bold text-white shrink-0">
-          {shop.name ? shop.name[0].toUpperCase() : <Store className="h-5 w-5" />}
-        </div>
+      {/* BRAND HERO BANNER - selaras dengan banner di halaman utama */}
+      <div className="relative flex flex-col gap-4 overflow-hidden rounded-3xl bg-gradient-to-r from-brand to-[#0c44ca] px-5 py-6 text-white sm:flex-row sm:items-center sm:px-8 sm:py-7">
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
 
-        <div className="space-y-1.5 flex-1">
-          <h1 className="text-lg font-bold tracking-tight text-slate-900">
-            {shop.name}
-          </h1>
-          <p className="text-sm font-medium text-slate-500 leading-relaxed">
+        <span className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-lg font-bold backdrop-blur-md">
+          {shop.name ? shop.name[0].toUpperCase() : <Store className="h-6 w-6" />}
+        </span>
+
+        <div className="relative z-10 min-w-0 flex-1 space-y-1">
+          <div className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/70">
+            <Store className="h-3 w-3" /> Profil Toko
+          </div>
+          <h1 className="text-xl font-black tracking-tight sm:text-2xl">{shop.name}</h1>
+          <p className="text-xs font-medium leading-relaxed text-white/70 sm:max-w-2xl">
             {shop.description || "Pusat distribusi perlengkapan olahraga original. Kami menyediakan produk bersertifikasi resmi langsung dari mitra brand internasional terkemuka."}
           </p>
         </div>
       </div>
 
-      {/* SECTION 2: GRID INFORMASI UTAMA & GOOGLE MAPS INTEGRATION */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+      {/* INFO TILES - alamat, layanan pelanggan, jam operasional dalam kartu seimbang */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <InfoTile icon={<MapPin className="h-4 w-4" />} label="Alamat">
+          <p className="text-sm font-bold leading-relaxed text-slate-700">{shop.address}</p>
+        </InfoTile>
 
-        {/* KOLOM KIRI: LOKASI GUDANG & PETA INTEGRASI */}
-        <div className="space-y-4">
-          <InfoSection
-            icon={<MapPin className="h-3.5 w-3.5 text-slate-400" />}
-            label="Alamat"
-            value={shop.address}
-          />
+        <InfoTile icon={<Phone className="h-4 w-4" />} label="Layanan Pelanggan">
+          <a href={`tel:${shop.phone_number}`} className="text-sm font-bold text-slate-900 transition-colors hover:text-brand">
+            {shop.phone_number}
+          </a>
+        </InfoTile>
 
-          <div className="w-full aspect-video rounded-xl overflow-hidden border border-slate-100 bg-slate-50">
-            <iframe
-              src={googleMapsEmbedUrl}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
-              allowFullScreen={true}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="w-full h-full"
-            />
-          </div>
-        </div>
+        <InfoTile icon={<Clock className="h-4 w-4" />} label="Jam Operasional">
+          <p className="text-sm font-bold text-slate-700">Senin - Sabtu, 09:00 - 18:00 WIB</p>
+        </InfoTile>
+      </div>
 
-        {/* KOLOM KANAN: HOTLINE & OPERASIONAL JAM */}
-        <div className="space-y-4">
-          <InfoSection
-            icon={<Phone className="h-3.5 w-3.5 text-slate-400" />}
-            label="Layanan Pelanggan"
-            value={shop.phone_number}
-            isLink
-          />
-
-          <div className="space-y-1.5">
-            <h2 className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-slate-400" /> Jam Operasional
-            </h2>
-            <p className="text-sm font-bold text-slate-700">Senin - Sabtu, 09:00 - 18:00 WIB</p>
-          </div>
-        </div>
-
+      {/* PETA LOKASI - full width */}
+      <div className="w-full overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+        <iframe
+          src={googleMapsEmbedUrl}
+          width="100%"
+          height="360"
+          style={{ border: 0 }}
+          allowFullScreen={true}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          className="w-full"
+        />
       </div>
 
     </div>
   );
 }
 
-function InfoSection({ icon, label, value, isLink }: InfoSectionProps) {
+function InfoTile({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-1.5">
-      <h2 className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
-        {icon} {label}
-      </h2>
-
-      {isLink ? (
-        <a
-          href={`tel:${value}`}
-          className="text-sm font-bold text-slate-900 hover:text-brand transition-colors inline-block"
-        >
-          {value}
-        </a>
-      ) : (
-        <p className="text-sm font-bold text-slate-700 leading-relaxed">
-          {value}
-        </p>
-      )}
-    </section>
+    <div className="rounded-2xl border border-slate-100 bg-white p-5">
+      <div className="mb-3 flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand/10 text-brand">
+          {icon}
+        </div>
+        <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</h2>
+      </div>
+      {children}
+    </div>
   );
 }
