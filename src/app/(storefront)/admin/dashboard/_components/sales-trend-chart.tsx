@@ -53,7 +53,7 @@ export function SalesTrendChart({ data }: { data: TrendData[] }) {
               tickLine={false}
             />
             <Tooltip 
-              formatter={(value: any) => [formatRupiah(value), 'Pendapatan']}
+              formatter={(value) => [formatRupiah(Number(value)), 'Pendapatan']}
             //   labelFormatter={formatMonth}
               contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', fontSize: '11px', fontWeight: 'bold' }}
             />

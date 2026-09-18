@@ -7,7 +7,7 @@ import { X, Loader2, Package, Tag, Eye, Plus, Upload } from "lucide-react";
 import ImportProductModal from "./import-product-modal"; 
 import { toast } from "sonner"; // 🟢 1. IMPORT TOAST SONNER
 
-export default function AddProductModal({ categories }: { categories: any[] }) {
+export default function AddProductModal({ categories }: { categories: { id: string | number; name: string }[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false); 
 

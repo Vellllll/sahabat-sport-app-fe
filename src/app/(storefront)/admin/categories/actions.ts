@@ -7,6 +7,7 @@ import { serverApiFetch } from '@/lib/server-api';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { revalidateTag } from 'next/cache';
 import { ensurePermission } from '@/lib/rbac/guards';
+import { extractApiErrorMessage, asRecord } from '@/lib/api-error';
 
 export async function createCategory(prevState: CategoryFormState, formData: FormData): Promise<CategoryFormState> {
   const access = await ensurePermission('categories:manage');
@@ -36,36 +37,30 @@ export async function createCategory(prevState: CategoryFormState, formData: For
     
     return { message: 'Kategori berhasil dibuat!', errors: {} };
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 Debug Error Kategori Di Server Action:", error);
 
     // 🟢 STRATEGI 1: Jika error adalah Response Fetch (memiliki method .json)
-    if (error && typeof error.json === 'function') {
-      try {
-        const errorPayload = await error.json();
-        if (errorPayload?.message) {
-          return { message: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, errors: {} };
-        }
-      } catch (e) {}
-    }
+    const apiMessage = await extractApiErrorMessage(error);
+    if (apiMessage) return { message: apiMessage, errors: {} };
 
     // 🟢 STRATEGI 2: Jika serverApiFetch mengekstrak payload ke properti internal (e.g. error.body / error.data)
-    if (error?.body?.message) {
-      return { message: error.body.message, errors: {} };
-    }
-    if (error?.data?.message) {
-      return { message: error.data.message, errors: {} };
-    }
+    const errorRecord = asRecord(error);
+    const bodyMessage = asRecord(errorRecord?.body)?.message;
+    if (typeof bodyMessage === 'string') return { message: bodyMessage, errors: {} };
+
+    const dataMessage = asRecord(errorRecord?.data)?.message;
+    if (typeof dataMessage === 'string') return { message: dataMessage, errors: {} };
 
     // 🟢 STRATEGI 3: Jika serverApiFetch melemparkan instansiasi teks string langsung ke error.message
-    if (error?.message) {
+    if (error instanceof Error && error.message) {
       try {
         // Cek apakah di dalam string message terdapat raw JSON string stringify
         const parsedMessage = JSON.parse(error.message);
         if (parsedMessage?.message) {
           return { message: parsedMessage.message, errors: {} };
         }
-      } catch (e) {
+      } catch {
         // Jika error.message berupa teks string biasa ("Nama kategori sudah terdaftar")
         return { message: error.message, errors: {} };
       }
@@ -134,23 +129,21 @@ export async function deleteCategory(id: string | number) {
     revalidatePath('/admin/categories');
     revalidatePath('/admin/products');
     return { success: true, message: 'Kategori berhasil dihapus!' };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Delete Category Server Action Error:", error);
 
     // 🟢 REFACTOR UTAMA: Ekstrak error biner JSON dari NestJS BadRequestException
-    if (error && typeof error.json === 'function') {
-      try {
-        const errorPayload = await error.json();
-        // Menangkap "Kategori tidak dapat dihapus karena masih memiliki produk aktif"
-        if (errorPayload && errorPayload.message) {
-          return { success: false, message: errorPayload.message };
-        }
-      } catch (e) {}
-    }
+    const apiMessage = await extractApiErrorMessage(error);
+    if (apiMessage) return { success: false, message: apiMessage };
 
-    if (error?.body?.message) return { success: false, message: error.body.message };
-    if (error?.data?.message) return { success: false, message: error.data.message };
-    if (error?.message) return { success: false, message: error.message };
+    const errorRecord = asRecord(error);
+    const bodyMessage = asRecord(errorRecord?.body)?.message;
+    if (typeof bodyMessage === 'string') return { success: false, message: bodyMessage };
+
+    const dataMessage = asRecord(errorRecord?.data)?.message;
+    if (typeof dataMessage === 'string') return { success: false, message: dataMessage };
+
+    if (error instanceof Error && error.message) return { success: false, message: error.message };
 
     // Fallback umum
     return { success: false, message: 'Gagal menghapus kategori akibat kesalahan jaringan.' };

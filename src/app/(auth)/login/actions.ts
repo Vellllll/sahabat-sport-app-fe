@@ -8,6 +8,14 @@ import { getRoleFromToken } from '@/lib/rbac/jwt'
 import { isAdminRole } from '@/lib/rbac/roles'
 import type { SessionUser } from '@/lib/rbac/types'
 import { LoginState } from './types'
+import { extractApiErrorMessage, getErrorMessage } from '@/lib/api-error'
+
+interface LoginApiResponse {
+  data: {
+    token: string;
+    user?: SessionUser;
+  };
+}
 
 export async function authenticate(
   _prevState: LoginState | undefined,
@@ -33,7 +41,7 @@ export async function authenticate(
   let loginSuccessful = false;
 
   try {
-    const data = await serverApiFetch<any>('/login', {
+    const data = await serverApiFetch<LoginApiResponse>('/login', {
       method: 'POST',
       body: { email_or_phone_number, password },
       withAuth: false,
@@ -63,29 +71,17 @@ export async function authenticate(
 
     loginSuccessful = true;
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 [Login API Error]:", error);
 
     // Kupas tuntas error payload JSON dari NestJS
-    if (error && typeof error.json === 'function') {
-      try {
-        const errorPayload = await error.json();
-        if (errorPayload && errorPayload.message) {
-          return { 
-            error: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, 
-            fields: rawFields,
-            timestamp: Date.now()
-          };
-        }
-      } catch (e) {}
+    const apiMessage = await extractApiErrorMessage(error);
+    if (apiMessage) {
+      return { error: apiMessage, fields: rawFields, timestamp: Date.now() };
     }
 
-    if (error?.message) {
-      return { error: error.message, fields: rawFields, timestamp: Date.now() };
-    }
-    
-    return { 
-      error: 'Kredensial salah atau gagal terhubung ke server.', 
+    return {
+      error: getErrorMessage(error, 'Kredensial salah atau gagal terhubung ke server.'),
       fields: rawFields,
       timestamp: Date.now()
     };

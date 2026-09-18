@@ -47,7 +47,7 @@ export async function importProductsAction(
         });
 
         // 3. Bersihkan cache server Next.js agar UI langsung diperbarui secara real-time
-        revalidateTag(CACHE_TAGS.products, 'max' as any);
+        revalidateTag(CACHE_TAGS.products, 'max');
         revalidatePath('/admin/products');
 
         return { success: true, message: `Sukses mengimpor ${validatedProducts.length} produk ke dalam katalog!` };

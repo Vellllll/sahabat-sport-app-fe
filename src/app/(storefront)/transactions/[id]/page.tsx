@@ -165,7 +165,7 @@ export default async function TransactionDetailPage({ params }: Props) {
                 <XCircle className="h-4 w-4" /> Informasi Pembatalan Toko
               </p>
               <p className="text-rose-900 font-extrabold normal-case leading-relaxed">
-                "{detail.reject_note}"
+                &quot;{detail.reject_note}&quot;
               </p>
             </div>
           )}

@@ -46,11 +46,8 @@ export async function getMonthlyProductSalesReport(
 
     const json = await serverApiFetch<MonthlyProductSalesReportResponse>(endpoint, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
       cache: 'no-store',
-    } as any);
+    });
 
     return json;
   } catch (error) {

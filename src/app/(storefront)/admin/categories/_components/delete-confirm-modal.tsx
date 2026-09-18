@@ -50,7 +50,7 @@ export default function DeleteConfirmModal({ isOpen, onClose, item, onDeleted }:
           </div>
           <h2 className="text-base font-bold text-slate-900 mb-1.5">Hapus Kategori?</h2>
           <p className="text-slate-500 text-sm leading-relaxed mb-6">
-            Anda akan menghapus <span className="font-bold text-slate-800">"{item.name}"</span>. Data tidak dapat dipulihkan.
+            Anda akan menghapus <span className="font-bold text-slate-800">&quot;{item.name}&quot;</span>. Data tidak dapat dipulihkan.
           </p>
 
           <div className="grid grid-cols-2 gap-2.5 w-full">

@@ -46,7 +46,10 @@ export function OrderDistributionChart({ data }: { data: DistributionData }) {
               ))}
             </Pie>
             <Tooltip 
-              formatter={(value: any) => [`${value} Transaksi (${((value / total) * 100).toFixed(1)}%)`, 'Status']}
+              formatter={(value) => {
+                const numericValue = Number(value);
+                return [`${numericValue} Transaksi (${((numericValue / total) * 100).toFixed(1)}%)`, 'Status'];
+              }}
               contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' }}
             />
           </PieChart>

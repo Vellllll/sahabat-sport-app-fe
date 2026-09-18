@@ -53,7 +53,7 @@ export function ItemDeleteDialog({ productId, itemId, itemName }: ItemDeleteDial
             Hapus Varian Ini?
           </AlertDialogTitle>
           <AlertDialogDescription className="text-slate-500 text-xs font-medium leading-relaxed mt-2">
-            Apakah Anda yakin ingin menghapus <span className="font-bold text-slate-900">"{itemName}"</span>? Tindakan ini tidak dapat dibatalkan dan akan menghapus stok varian ini secara permanen.
+            Apakah Anda yakin ingin menghapus <span className="font-bold text-slate-900">&quot;{itemName}&quot;</span>? Tindakan ini tidak dapat dibatalkan dan akan menghapus stok varian ini secara permanen.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-6 flex flex-row items-center gap-2 justify-end">

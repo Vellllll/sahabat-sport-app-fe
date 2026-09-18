@@ -23,12 +23,18 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  // Initial state HARUS [] di server maupun render pertama client agar cocok
+  // dengan SSR (localStorage tidak ada di server) — baru dibaca setelah hydrate.
   const [cart, setCart] = useState<CartItem[]>([]);
-
   useEffect(() => {
     const savedCart = localStorage.getItem('sahabat_sport_cart');
     if (savedCart) {
-      try { setCart(JSON.parse(savedCart)); } catch (e) { console.error(e); }
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above, SSR-safe by design
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error(e);
+      }
     }
   }, []);
 

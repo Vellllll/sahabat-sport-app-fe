@@ -52,17 +52,23 @@ interface SidebarProps {
 export function Sidebar({ initialLoginStatus, showAdminLink = false }: SidebarProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  // Sengaja tetap pakai efek (bukan lazy initializer) walau kena warning
+  // react-hooks/set-state-in-effect: nilai ini datang dari localStorage yang
+  // tidak ada di server, jadi initial state HARUS false di kedua sisi supaya
+  // markup SSR dan render pertama client cocok — baru disesuaikan setelah hydrate.
   const [isCollapsed, setIsCollapsed] = useState(false);
-
   useEffect(() => {
     const stored = window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- see comment above, SSR-safe by design
     if (stored === "true") setIsCollapsed(true);
   }, []);
 
-  // Tutup drawer mobile setiap kali rute berpindah
-  useEffect(() => {
+  // Tutup drawer mobile setiap kali rute berpindah (reset saat render, bukan di efek)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   // Kunci scroll halaman di belakang saat drawer mobile terbuka
   useEffect(() => {

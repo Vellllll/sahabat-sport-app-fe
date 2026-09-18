@@ -32,7 +32,7 @@ export default function DeleteUnitModal({ isOpen, onClose, unit }: { isOpen: boo
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mb-2">Hapus Satuan?</h2>
           <p className="text-slate-500 text-sm leading-relaxed mb-8">
-            Anda akan menghapus satuan <span className="font-bold text-slate-800">"{unit.name}"</span>. Data tidak dapat dikembalikan.
+            Anda akan menghapus satuan <span className="font-bold text-slate-800">&quot;{unit.name}&quot;</span>. Data tidak dapat dikembalikan.
           </p>
 
           <div className="grid grid-cols-2 gap-3 w-full">

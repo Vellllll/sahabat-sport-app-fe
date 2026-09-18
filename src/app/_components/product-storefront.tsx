@@ -131,12 +131,25 @@ export default function ProductStorefront({ initialProducts, categories, current
   );
 }
 
-function ProductFilters({ 
-  searchQuery, setSearchQuery, 
-  minPrice, setMinPrice, 
-  maxPrice, setMaxPrice, 
-  currentFilters, categories, applyFilters, isPending 
-}: any) {
+interface ProductFiltersProps {
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  minPrice: number | string;
+  setMinPrice: (value: number | string) => void;
+  maxPrice: number | string;
+  setMaxPrice: (value: number | string) => void;
+  currentFilters: Props['currentFilters'];
+  categories: Category[];
+  applyFilters: (newParams: Record<string, string | number | null>) => void;
+  isPending: boolean;
+}
+
+function ProductFilters({
+  searchQuery, setSearchQuery,
+  minPrice, setMinPrice,
+  maxPrice, setMaxPrice,
+  currentFilters, categories, applyFilters, isPending
+}: ProductFiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

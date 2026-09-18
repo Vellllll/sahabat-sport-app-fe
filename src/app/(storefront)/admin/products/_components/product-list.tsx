@@ -22,7 +22,7 @@ import DeleteProductModal from "./delete-product-modal";
 import { formatRupiah } from "@/lib/utils";
 
 interface Category {
-  id: string;
+  id: string | number;
   name: string;
 }
 

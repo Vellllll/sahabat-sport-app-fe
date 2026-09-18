@@ -3,6 +3,7 @@
 
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 
 const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
@@ -63,9 +64,9 @@ export async function updateCartItemQuantity(
     revalidatePath('/', 'layout');
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Mutation quantity error:", error);
-    if (error && error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+    if (isRedirectError(error)) throw error;
     return { success: false, error: 'Terjadi gangguan koneksi ke server.' };
   }
 }
@@ -103,9 +104,9 @@ export async function requestTransaction(transactionId: number): Promise<CartMut
     revalidatePath('/', 'layout');
     
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 [Request Transaction Server Error]:", error);
-    if (error && error.digest?.startsWith('NEXT_REDIRECT')) throw error;
+    if (isRedirectError(error)) throw error;
     return { success: false, error: 'Terjadi gangguan koneksi. Gagal menghubungi server gudang.' };
   }
 }

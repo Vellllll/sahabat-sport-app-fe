@@ -51,14 +51,10 @@ export async function getAdminDashboardStats(
 
     console.log(`[Next.js Fetch] Menembak API Dashboard: ${endpoint}`);
 
-    // Menggunakan cast 'as any' untuk menghindari konflik parameter ts(2353)
     const json = await serverApiFetch<DashboardApiResponse>(endpoint, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
       cache: 'no-store',
-    } as any);
+    });
 
     return json;
   } catch (error) {

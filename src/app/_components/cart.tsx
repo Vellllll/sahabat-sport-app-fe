@@ -1,7 +1,6 @@
 // app/_components/cart.tsx
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
@@ -11,15 +10,10 @@ import { useCart } from "@/context/cart-context"; // 🟢 1. IMPORT HOOK GLOBAL 
 export function Cart({ isCollapsed = false }: { isCollapsed?: boolean }) {
   const pathname = usePathname();
   const { getCartCount } = useCart(); // 🟢 2. AMBIL FUNGSI HITUNG TOTAL ITEM LIVE
-  const [cartCount, setCartCount] = useState<number>(0);
+  const cartCount = getCartCount(); // 🟢 3. DERIVED LANGSUNG SAAT RENDER, SELALU SINKRON DENGAN CART TERBARU
 
   // Cek apakah user saat ini sedang berada di halaman cart atau tidak
   const isCartPageActive = pathname === "/cart";
-
-  // 🟢 3. SINKRONKAN STATE SETIAP KALI KERANJANG DI-UPDATE ATAU PINDAH HALAMAN
-  useEffect(() => {
-    setCartCount(getCartCount());
-  }, [pathname, getCartCount]);
 
   return (
     <Link

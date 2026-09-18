@@ -6,6 +6,7 @@ import { UpdateProductSchema } from '@/lib/products/schema';
 import { CACHE_TAGS } from '@/lib/cache-tags';
 import { serverApiFetch } from '@/lib/server-api';
 import { ensurePermission } from '@/lib/rbac/guards';
+import { extractApiErrorMessage, asRecord } from '@/lib/api-error';
 
 export interface ProductFormState {
   message: string | null;
@@ -16,8 +17,12 @@ export interface ProductFormState {
   };
 }
 
+interface CategoryListResponse {
+  data: { id: string; name: string }[];
+}
+
 export async function getCategories() {
-  const json = await serverApiFetch<any>('/product-categories', {
+  const json = await serverApiFetch<CategoryListResponse>('/product-categories', {
     revalidate: 300,
     tags: [CACHE_TAGS.categories],
   });
@@ -52,26 +57,21 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
     revalidatePath('/admin/products');
     revalidatePath('/admin/categories');
     return { message: 'Produk berhasil ditambahkan!', errors: {} };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 Create Product Server Action Error:", error);
 
     // 🟢 REFACTOR UTAMA: Kupas tuntas error payload JSON dari Exception NestJS
-    if (error && typeof error.json === 'function') {
-      try {
-        const errorPayload = await error.json();
-        if (errorPayload?.message) {
-          // Tangkap pesan (bisa berupa string tunggal atau string array dari ValidationPipe)
-          return { 
-            message: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, 
-            errors: {} 
-          };
-        }
-      } catch (e) {}
-    }
+    const apiMessage = await extractApiErrorMessage(error);
+    if (apiMessage) return { message: apiMessage, errors: {} };
 
-    if (error?.body?.message) return { message: error.body.message, errors: {} };
-    if (error?.data?.message) return { message: error.data.message, errors: {} };
-    if (error?.message) return { message: error.message, errors: {} };
+    const errorRecord = asRecord(error);
+    const bodyMessage = asRecord(errorRecord?.body)?.message;
+    if (typeof bodyMessage === 'string') return { message: bodyMessage, errors: {} };
+
+    const dataMessage = asRecord(errorRecord?.data)?.message;
+    if (typeof dataMessage === 'string') return { message: dataMessage, errors: {} };
+
+    if (error instanceof Error && error.message) return { message: error.message, errors: {} };
 
     return { message: 'Gagal menghubungi server.', errors: {} };
   }

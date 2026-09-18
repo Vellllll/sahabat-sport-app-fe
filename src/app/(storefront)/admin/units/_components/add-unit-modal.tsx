@@ -11,12 +11,16 @@ export default function AddUnitModal() {
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.message?.toLowerCase().includes('berhasil')) {
+    if (!state.message) return;
+
+    if (state.message.toLowerCase().includes('berhasil')) {
       toast.success(state.message);
-      setIsOpen(false);
-      formRef.current?.reset();
-      state.message = null; 
-    } else if (state.message) {
+      const timer = setTimeout(() => {
+        setIsOpen(false);
+        formRef.current?.reset();
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
       toast.error(state.message);
     }
   }, [state.message]);

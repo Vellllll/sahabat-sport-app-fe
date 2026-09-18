@@ -4,7 +4,7 @@ import { useActionState, useRef, useEffect } from 'react';
 import { createProduct } from './actions';
 import { Loader2, ChevronDown } from 'lucide-react';
 
-export default function CreateProductForm({ categories }: { categories: any[] }) {
+export default function CreateProductForm({ categories }: { categories: { id: string; name: string }[] }) {
   const [state, formAction, isPending] = useActionState(createProduct, { errors: {}, message: null });
   const formRef = useRef<HTMLFormElement>(null);
 

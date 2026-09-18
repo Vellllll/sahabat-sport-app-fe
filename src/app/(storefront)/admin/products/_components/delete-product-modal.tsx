@@ -53,7 +53,7 @@ export default function DeleteProductModal({ isOpen, onClose, product }: Props) 
           
           <h2 className="text-xl font-extrabold text-slate-900 mb-2">Hapus Produk?</h2>
           <p className="text-slate-500 text-sm leading-relaxed mb-8">
-            Anda akan menghapus produk <span className="font-bold text-slate-800">"{product.name}"</span>. Data yang dihapus tidak dapat dikembalikan.
+            Anda akan menghapus produk <span className="font-bold text-slate-800">&quot;{product.name}&quot;</span>. Data yang dihapus tidak dapat dikembalikan.
           </p>
 
           {/* Error Message Alert */}

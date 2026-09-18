@@ -3,6 +3,7 @@
 
 import { RegisterState, RegisterFields } from './types'
 import { serverApiFetch } from '@/lib/server-api'
+import { extractApiErrorMessage, getErrorMessage } from '@/lib/api-error'
 import { z } from 'zod'
 
 // Regex ketat untuk nomor telepon Indonesia (Hanya angka murni)
@@ -89,25 +90,19 @@ export async function registerUser(
       timestamp: Date.now() 
     }
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("🔥 [Register API Error]:", error);
 
-    if (error && typeof error.json === 'function') {
-      try {
-        const errorPayload = await error.json();
-        if (errorPayload && errorPayload.message) {
-          return { 
-            success: false, 
-            error: Array.isArray(errorPayload.message) ? errorPayload.message[0] : errorPayload.message, 
-            fields: rawFields,
-            timestamp: Date.now()
-          };
-        }
-      } catch (e) {}
+    const apiMessage = await extractApiErrorMessage(error);
+    if (apiMessage) {
+      return { success: false, error: apiMessage, fields: rawFields, timestamp: Date.now() };
     }
 
-    if (error?.message) return { success: false, error: error.message, fields: rawFields, timestamp: Date.now() };
-
-    return { success: false, error: 'Koneksi ke server gagal atau data sudah terdaftar.', fields: rawFields, timestamp: Date.now() }
+    return {
+      success: false,
+      error: getErrorMessage(error, 'Koneksi ke server gagal atau data sudah terdaftar.'),
+      fields: rawFields,
+      timestamp: Date.now()
+    }
   }
 }

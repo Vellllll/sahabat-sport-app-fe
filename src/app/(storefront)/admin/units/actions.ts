@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { serverApiFetch } from '@/lib/server-api';
 import { ensurePermission } from '@/lib/rbac/guards';
+import { getErrorMessage } from '@/lib/api-error';
 
 // Typings sesuai JSON respons dokumentasi API
 export interface UnitItem {
@@ -18,6 +19,11 @@ export interface UnitFormState {
   timestamp?: number;
 }
 
+interface UnitListResponse {
+  data?: UnitItem[];
+  meta?: { totalPages: number; currentPage: number; totalItems: number };
+}
+
 const UnitSchema = z.object({
   name: z.string().min(1, "Nama satuan wajib diisi"),
   quantity: z.coerce.number().min(1, "Kuantitas minimal 1"),
@@ -28,13 +34,13 @@ const UNIT_CACHE_TAG = 'units';
 // --- DATA FETCHER ---
 export async function getUnits(page: number = 1, limit: number = 10) {
   // Sesuai parameter dokumentasi: page, limit
-  const res = await serverApiFetch<any>(`/units?page=${page}&limit=${limit}`, {
+  const res = await serverApiFetch<UnitListResponse>(`/units?page=${page}&limit=${limit}`, {
     revalidate: 60,
     tags: [UNIT_CACHE_TAG],
   });
 
   return {
-    data: (res.data as UnitItem[]) ?? [],
+    data: res.data ?? [],
     meta: res.meta ?? { totalPages: 1, currentPage: 1, totalItems: 0 },
   };
 }
@@ -66,8 +72,8 @@ export async function createUnit(_prevState: UnitFormState, formData: FormData):
 
     revalidatePath('/admin/units');
     return { message: 'Satuan berhasil dibuat!', timestamp: Date.now() };
-  } catch (error: any) {
-    return { message: error.message || 'Gagal terhubung ke server.', timestamp: Date.now() };
+  } catch (error: unknown) {
+    return { message: getErrorMessage(error, 'Gagal terhubung ke server.'), timestamp: Date.now() };
   }
 }
 
@@ -98,8 +104,8 @@ export async function updateUnit(_prevState: UnitFormState, formData: FormData):
 
     revalidatePath('/admin/units');
     return { message: 'Satuan berhasil diupdate!', timestamp: Date.now() };
-  } catch (error: any) {
-    return { message: error.message || 'Gagal mengupdate satuan.', timestamp: Date.now() };
+  } catch (error: unknown) {
+    return { message: getErrorMessage(error, 'Gagal mengupdate satuan.'), timestamp: Date.now() };
   }
 }
 
@@ -112,7 +118,7 @@ export async function deleteUnit(id: number) {
     await serverApiFetch(`/units/${id}`, { method: 'DELETE' });
     revalidatePath('/admin/units');
     return { success: true, message: 'Satuan berhasil dihapus!' };
-  } catch (error: any) {
-    return { success: false, message: error.message || 'Gagal menghapus satuan.' };
+  } catch (error: unknown) {
+    return { success: false, message: getErrorMessage(error, 'Gagal menghapus satuan.') };
   }
 }

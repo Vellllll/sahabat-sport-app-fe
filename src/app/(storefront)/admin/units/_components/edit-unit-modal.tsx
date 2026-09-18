@@ -9,11 +9,12 @@ export default function EditUnitModal({ isOpen, onClose, unit }: { isOpen: boole
   const [state, formAction, isPending] = useActionState(updateUnit, { message: null });
 
   useEffect(() => {
-    if (state.message?.toLowerCase().includes('berhasil')) {
+    if (!state.message) return;
+
+    if (state.message.toLowerCase().includes('berhasil')) {
       toast.success(state.message);
       onClose();
-      state.message = null;
-    } else if (state.message) {
+    } else {
       toast.error(state.message);
     }
   }, [state.message, onClose]);

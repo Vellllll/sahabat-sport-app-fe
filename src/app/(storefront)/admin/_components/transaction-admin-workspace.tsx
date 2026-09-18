@@ -18,7 +18,7 @@ import {
 import { 
   PackageOpen, Store, ShieldCheck, Truck, ArrowLeftRight, Receipt, Eye, FileImage, Loader2, PackageCheck, AlertTriangle, CheckCircle2, XCircle
 } from 'lucide-react';
-import { AdminTransactionItem, getAdminTransactionsByFilter } from '@/lib/api/admin-transactions';
+import { AdminTransactionItem, TransactionDetailResponse, getAdminTransactionsByFilter } from '@/lib/api/admin-transactions';
 import { fetchDetailAction } from '../actions';
 import { readyTransactionAction } from '@/lib/api/admin-transactions';
 import { shipTransactionAction } from '@/lib/api/admin-transactions';
@@ -41,7 +41,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
   const [currentListData, setCurrentListData] = useState<AdminTransactionItem[]>(initialRequested);
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [inspectTrx, setInspectTrx] = useState<any | null>(null);
+  const [inspectTrx, setInspectTrx] = useState<TransactionDetailResponse | null>(null);
   const [activeBtnId, setActiveBtnId] = useState<number | null>(null);
 
   const [isReadyAlertOpen, setIsReadyAlertOpen] = useState(false);
@@ -168,7 +168,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
     });
   };
 
-  const calculatedGrandTotal = inspectTrx?.items?.reduce((acc: number, item: any) => {
+  const calculatedGrandTotal = inspectTrx?.items?.reduce((acc: number, item) => {
     return acc + (Number(item.product_item?.price || 0) * item.count);
   }, 0) || 0;
 
@@ -361,7 +361,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
                 <p className="text-[10px] font-bold text-rose-500 flex items-center gap-1.5">
                   <XCircle className="h-3.5 w-3.5" /> Alasan Pembatalan / Reject Note
                 </p>
-                <p className="text-rose-900 font-extrabold normal-case leading-relaxed">"{inspectTrx.reject_note}"</p>
+                <p className="text-rose-900 font-extrabold normal-case leading-relaxed">&quot;{inspectTrx.reject_note}&quot;</p>
               </div>
             )}
 
@@ -369,7 +369,7 @@ export function TransactionAdminWorkspace({ token, initialRequested }: Workspace
               <p className="text-[10px] font-bold text-slate-400 pl-0.5">Daftar Produk Dibeli</p>
               {inspectTrx?.items && inspectTrx.items.length > 0 ? (
                 <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl px-4 sm:px-6 bg-white shadow-sm">
-                  {inspectTrx.items.map((subItem: any, idx: number) => {
+                  {inspectTrx.items.map((subItem, idx: number) => {
                     const itemPrice = Number(subItem.product_item?.price || 0);
                     return (
                       <div key={idx} className="py-4 flex justify-between items-center gap-4 text-xs sm:text-base hover:bg-slate-50/50 transition-colors">

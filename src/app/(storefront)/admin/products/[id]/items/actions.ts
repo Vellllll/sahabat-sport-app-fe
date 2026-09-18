@@ -5,7 +5,20 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { serverApiFetch } from '@/lib/server-api';
 import { ensurePermission } from '@/lib/rbac/guards';
+import { getErrorMessage } from '@/lib/api-error';
 import { UnitItem } from '../../../units/actions';
+
+interface PaginatedResponse<T> {
+    data?: T[];
+    currentPage?: number;
+    perPage?: number;
+    totalPages?: number;
+    totalItems?: number;
+}
+
+interface SingleResponse<T> {
+    data?: T;
+}
 
 export interface ProductItemRelation {
     id: number;
@@ -68,9 +81,9 @@ export async function getProductItems(productId: string, page: number = 1, limit
         productId: productId, // Menyematkan productId secara eksplisit ke params API
     });
 
-    const res = await serverApiFetch<any>(`/product-items?${query.toString()}`);
+    const res = await serverApiFetch<PaginatedResponse<ProductItem>>(`/product-items?${query.toString()}`);
     return {
-        data: (res.data as ProductItem[]) ?? [],
+        data: res.data ?? [],
         meta: {
             currentPage: res.currentPage ?? 1,
             perPage: res.perPage ?? 10,
@@ -82,8 +95,8 @@ export async function getProductItems(productId: string, page: number = 1, limit
 
 export async function getProductItemById(itemId: number): Promise<ProductItem | null> {
     try {
-        const res = await serverApiFetch<any>(`/product-items/${itemId}`);
-        return res.data as ProductItem;
+        const res = await serverApiFetch<SingleResponse<ProductItem>>(`/product-items/${itemId}`);
+        return res.data ?? null;
     } catch {
         return null;
     }
@@ -91,8 +104,8 @@ export async function getProductItemById(itemId: number): Promise<ProductItem | 
 
 export async function getAllUnitsAvailable() {
     try {
-        const res = await serverApiFetch<any>('/units?page=1&limit=100');
-        return (res.data as UnitItem[]) ?? [];
+        const res = await serverApiFetch<PaginatedResponse<UnitItem>>('/units?page=1&limit=100');
+        return res.data ?? [];
     } catch {
         return [];
     }
@@ -125,8 +138,8 @@ export async function createProductItem(_prevState: ActionState, formData: FormD
         await serverApiFetch('/product-items', { method: 'POST', body: validatedFields.data });
         revalidatePath(`/admin/products/${validatedFields.data.product_id}/items`);
         return { success: true, message: 'Item produk berhasil ditambahkan!', timestamp: Date.now() };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Gagal menyimpan item ke server.', timestamp: Date.now() };
+    } catch (error: unknown) {
+        return { success: false, message: getErrorMessage(error, 'Gagal menyimpan item ke server.'), timestamp: Date.now() };
     }
 }
 
@@ -156,8 +169,8 @@ export async function updateProductItem(id: number, productId: number, _prevStat
         await serverApiFetch(`/product-items/${id}`, { method: 'PUT', body: validatedFields.data });
         revalidatePath(`/admin/products/${productId}/items`);
         return { success: true, message: 'Item produk berhasil diperbarui!', timestamp: Date.now() };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Gagal memperbarui item.', timestamp: Date.now() };
+    } catch (error: unknown) {
+        return { success: false, message: getErrorMessage(error, 'Gagal memperbarui item.'), timestamp: Date.now() };
     }
 }
 
@@ -169,7 +182,7 @@ export async function deleteProductItem(id: number, productId: number) {
         await serverApiFetch(`/product-items/${id}`, { method: 'DELETE' });
         revalidatePath(`/admin/products/${productId}/items`);
         return { success: true, message: 'Item produk berhasil dihapus!' };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'Gagal menghapus item.' };
+    } catch (error: unknown) {
+        return { success: false, message: getErrorMessage(error, 'Gagal menghapus item.') };
     }
 }

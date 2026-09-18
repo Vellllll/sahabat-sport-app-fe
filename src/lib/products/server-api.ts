@@ -16,6 +16,28 @@ interface ProductApiResponse {
   is_displayed?: boolean;
 }
 
+interface ProductListResponse {
+  data?: ProductApiResponse[];
+  totalPages?: number;
+  totalItems?: number;
+}
+
+interface ProductDetailResponse {
+  data?: ProductApiResponse;
+}
+
+interface ProductItemSummary {
+  price: string | number;
+  stock: number;
+  pic_url?: string;
+}
+
+interface ProductItemListResponse {
+  data?: ProductItemSummary[];
+  totalPages?: number;
+  totalItems?: number;
+}
+
 export async function getProducts({
   search = "",
   page = 1,
@@ -32,7 +54,7 @@ export async function getProducts({
     params.append("categoryId", categoryId);
   }
 
-  const json = await serverApiFetch<any>(`/products?${params.toString()}`, {
+  const json = await serverApiFetch<ProductListResponse>(`/products?${params.toString()}`, {
     revalidate: 60,
     tags: [CACHE_TAGS.products],
   });
@@ -45,7 +67,7 @@ export async function getProducts({
 }
 
 export async function getProductById(id: number) {
-  const json = await serverApiFetch<any>(`/products/${id}`, {
+  const json = await serverApiFetch<ProductDetailResponse & ProductApiResponse>(`/products/${id}`, {
     revalidate: 60,
     tags: [CACHE_TAGS.products],
   });
@@ -130,7 +152,7 @@ export async function getProductItems(
     params.set("isDisplayed", String(isDisplayed));
   }
 
-  const json = await serverApiFetch<any>(`/product-items?${params.toString()}`, {
+  const json = await serverApiFetch<ProductItemListResponse>(`/product-items?${params.toString()}`, {
     revalidate: 60,
     tags: [CACHE_TAGS.productItems],
   });

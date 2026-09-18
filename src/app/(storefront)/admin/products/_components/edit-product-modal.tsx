@@ -19,45 +19,41 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   product: Product | null;
-  categories: { id: string; name: string }[];
+  categories: { id: string | number; name: string }[];
 }
 
 export default function EditProductModal({ isOpen, onClose, product, categories: initialCategories }: Props) {
   const initialState: ProductFormState = { message: null };
   const [state, formAction, isPending] = useActionState(updateProduct, initialState);
 
-  // State lokal untuk kategori
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>(initialCategories);
+  // State lokal untuk kategori. Modal ini dirender dengan `key={product?.id ?? "closed"}`
+  // dari pemanggilnya, jadi setiap kali produk yang diedit berganti, komponen ini remount
+  // sepenuhnya — nilai awal berikut sudah otomatis "tersinkron ulang" tanpa perlu efek.
+  const [categories, setCategories] = useState<{ id: string | number; name: string }[]>(initialCategories);
   const [isLoadingCats, setIsLoadingCats] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState(() => {
+    const categoryId = product?.product_category_id ?? product?.product_category?.id ?? "";
+    return String(categoryId);
+  });
 
+  // Satu-satunya bagian yang benar-benar butuh efek: mengambil daftar kategori dari API
+  // saat prop awal kosong. Sinkronisasi dari `initialCategories` sendiri sudah ditangani
+  // oleh nilai awal `useState` di atas berkat remount per produk.
   useEffect(() => {
-    if (isOpen && product) {
-      const categoryId = product.product_category_id ?? product.product_category?.id ?? "";
-      setSelectedCategoryId(String(categoryId));
-    }
-  }, [isOpen, product]);
+    if (!isOpen || initialCategories.length > 0) return;
 
-  useEffect(() => {
-    if (isOpen && initialCategories.length > 0) {
-      setCategories(initialCategories);
-      return;
-    }
-
-    if (isOpen && initialCategories.length === 0) {
-      const fetchData = async () => {
-        setIsLoadingCats(true);
-        try {
-          const data = await getCategories();
-          setCategories(data || []);
-        } catch (err) {
-          console.error("Gagal memuat kategori:", err);
-        } finally {
-          setIsLoadingCats(false);
-        }
-      };
-      fetchData();
-    }
+    const fetchData = async () => {
+      setIsLoadingCats(true);
+      try {
+        const data = await getCategories();
+        setCategories(data || []);
+      } catch (err) {
+        console.error("Gagal memuat kategori:", err);
+      } finally {
+        setIsLoadingCats(false);
+      }
+    };
+    fetchData();
   }, [isOpen, initialCategories]);
 
   // 2. Feedback sukses & Auto-close

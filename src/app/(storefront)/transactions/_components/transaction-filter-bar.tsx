@@ -1,7 +1,7 @@
 // app/(storefront)/transactions/_components/transaction-filter-bar.tsx
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, Filter, RotateCcw } from 'lucide-react';
 
@@ -33,13 +33,16 @@ export function TransactionFilterBar({ currentFilters }: FilterProps) {
   const [endDate, setEndDate] = useState(currentFilters.endDate);
   const [status, setStatus] = useState(currentFilters.status);
 
-  // Efek reaktif jika parameter URL diubah dari luar komponen (misal tombol reset navbar)
-  useEffect(() => {
+  // Sinkronisasi reaktif jika parameter URL diubah dari luar komponen (misal tombol reset navbar).
+  // Direset saat render (bukan di efek) mengikuti pola resmi React untuk "adjusting state when a prop changes".
+  const [prevFilters, setPrevFilters] = useState(currentFilters);
+  if (currentFilters !== prevFilters) {
+    setPrevFilters(currentFilters);
     setQ(currentFilters.q);
     setStartDate(currentFilters.startDate);
     setEndDate(currentFilters.endDate);
     setStatus(currentFilters.status);
-  }, [currentFilters]);
+  }
 
   const handleApplyFilter = (e: React.FormEvent) => {
     e.preventDefault();

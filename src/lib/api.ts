@@ -1,8 +1,14 @@
 import { CACHE_TAGS } from "./cache-tags";
 import { serverApiFetch } from "./server-api";
 
+interface CategoryListResponse {
+  data?: Category[];
+  totalPages?: number;
+  totalItems?: number;
+}
+
 export async function getCategories() {
-  const json = await serverApiFetch<any>("/product-categories", {
+  const json = await serverApiFetch<CategoryListResponse>("/product-categories", {
     revalidate: 300,
     tags: [CACHE_TAGS.categories],
   });
@@ -10,7 +16,7 @@ export async function getCategories() {
 }
 
 export async function getAllCategories({ search = "", page = 1, limit = 20 }) {
-  const json = await serverApiFetch<any>(`/product-categories?q=${search}&page=${page}&limit=${limit}`, {
+  const json = await serverApiFetch<CategoryListResponse>(`/product-categories?q=${search}&page=${page}&limit=${limit}`, {
     revalidate: 60,
     tags: [CACHE_TAGS.categories],
   });

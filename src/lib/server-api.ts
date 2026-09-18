@@ -10,6 +10,7 @@ interface ServerApiOptions {
   withAuth?: boolean;
   revalidate?: number;
   tags?: string[];
+  cache?: RequestCache;
 }
 
 const API_URL = process.env.INTERNAL_API_URL;
@@ -23,7 +24,7 @@ function getApiUrl() {
 }
 
 export async function serverApiFetch<T>(path: string, options: ServerApiOptions = {}): Promise<T> {
-  const { method = "GET", body, withAuth = true, revalidate, tags } = options;
+  const { method = "GET", body, withAuth = true, revalidate, tags, cache } = options;
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -37,14 +38,14 @@ export async function serverApiFetch<T>(path: string, options: ServerApiOptions 
     }
   }
 
+  // `cache` and `next.revalidate` are mutually exclusive on fetch, so only set one.
+  const cachingOptions = cache ? { cache } : { next: { revalidate, tags } };
+
   const response = await fetch(`${getApiUrl()}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-    next: {
-      revalidate,
-      tags,
-    },
+    ...cachingOptions,
   });
 
   const data = await response.json().catch(() => ({}));

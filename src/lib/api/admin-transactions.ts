@@ -3,6 +3,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { ensurePermission } from '@/lib/rbac/guards';
+import { getErrorMessage } from '@/lib/api-error';
 
 const API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL;
 
@@ -82,6 +83,10 @@ export interface TransactionDetailResponse {
   number: string;
   total_amount: number;
   is_paid: boolean;
+  is_ready: boolean;
+  is_sent: boolean;
+  is_rejected: boolean;
+  reject_note?: string | null;
   created_at: number;
   items: {
     id: number;
@@ -209,7 +214,7 @@ export async function rejectTransactionAction(id: number, note: string) {
       return { success: false, error: json.message || 'Gagal mereject transaksi.' };
     }
     return { success: true, data: json.result };
-  } catch (error: any) {
-    return { success: false, error: error.message || 'Terjadi kesalahan koneksi server.' };
+  } catch (error: unknown) {
+    return { success: false, error: getErrorMessage(error, 'Terjadi kesalahan koneksi server.') };
   }
 }
