@@ -6,7 +6,9 @@ import {
     Sparkles, LayoutDashboard, Send, Bot, User, Loader2, ClipboardList, Trash2
 } from 'lucide-react';
 import Link from 'next/link';
-import { sendQueryToDatabaseAgent } from './actions';
+import { sendQueryToDatabaseAgent, type ChatTableData, type ChatChartData } from './actions';
+import { ChatTable } from './_components/chat-table';
+import { ChatChart } from './_components/chat-chart';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -15,6 +17,8 @@ interface Message {
     role: 'user' | 'assistant';
     text: string;
     timestamp: Date;
+    table?: ChatTableData | null;
+    chart?: ChatChartData | null;
 }
 
 export default function AdminAiChatAgentPage() {
@@ -40,19 +44,28 @@ export default function AdminAiChatAgentPage() {
      * 🟢 HELPER FUNCTION FOR TYPEWRITER EFFECT
      * Fungsi ini mensimulasikan AI mengetik dengan menambahkan kata demi kata secara berkala
      */
-    const simulateTyping = (fullText: string, messageId: string) => {
+    const simulateTyping = (
+        fullText: string,
+        messageId: string,
+        table: ChatTableData | null = null,
+        chart: ChatChartData | null = null
+    ) => {
         const words = fullText.split(' ');
         let currentWordIndex = 0;
         let currentText = '';
 
-        // Buat slot pesan kosong terlebih dahulu di timeline chat
+        // Buat slot pesan kosong terlebih dahulu di timeline chat.
+        // Tabel/chart langsung disertakan karena datanya sudah siap sepenuhnya —
+        // hanya narasi teksnya yang diketik bertahap.
         setMessages(prev => [
             ...prev,
             {
                 id: messageId,
                 role: 'assistant',
                 text: '',
-                timestamp: new Date()
+                timestamp: new Date(),
+                table,
+                chart,
             }
         ]);
 
@@ -96,11 +109,11 @@ export default function AdminAiChatAgentPage() {
         const response = await sendQueryToDatabaseAgent(userText);
 
         if (response && response.status === 201) {
-            // 3. Jalankan efek mengetik. 
-            // CATATAN: Di dalam fungsi `simulateTyping`, pastikan `setIsLoading(false)` 
+            // 3. Jalankan efek mengetik.
+            // CATATAN: Di dalam fungsi `simulateTyping`, pastikan `setIsLoading(false)`
             // BARU DIKRESEK MATI setelah kata terakhir selesai diketik agar transisinya mulus!
             const targetAiMessageId = Math.random().toString();
-            simulateTyping(response.answer, targetAiMessageId);
+            simulateTyping(response.answer, targetAiMessageId, response.table, response.chart);
         } else {
             // Kebijakan Fallback jika koneksi database gagal
             const targetAiMessageId = Math.random().toString();
@@ -151,10 +164,11 @@ export default function AdminAiChatAgentPage() {
             <div className="flex-1 bg-white border border-slate-100 rounded-[32px] shadow-sm overflow-y-auto p-4 sm:p-6 h-[calc(100vh-280px)] space-y-6 scrollbar-thin">
                 {messages.map((msg) => {
                     const isBot = msg.role === 'assistant';
+                    const hasVisualData = Boolean(msg.table || msg.chart);
                     return (
                         <div
                             key={msg.id}
-                            className={`flex gap-4 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-200 ${isBot ? 'mr-auto' : 'ml-auto flex-row-reverse'}`}
+                            className={`flex gap-4 max-w-[85%] animate-in fade-in slide-in-from-bottom-2 duration-200 ${isBot ? 'mr-auto' : 'ml-auto flex-row-reverse'} ${hasVisualData ? 'sm:max-w-[92%]' : ''}`}
                         >
                             <div className={`h-9 w-9 rounded-xl flex items-center justify-center shrink-0 border shadow-sm
                 ${isBot ? 'bg-blue-50 text-brand border-blue-100' : 'bg-slate-950 text-white border-slate-900'}
@@ -178,6 +192,9 @@ export default function AdminAiChatAgentPage() {
                                             {sanitizeMarkdownText(msg.text)}
                                         </ReactMarkdown>
                                     </article>
+
+                                    {msg.chart && <ChatChart chart={msg.chart} />}
+                                    {msg.table && <ChatTable table={msg.table} />}
                                 </div>
 
                                 <p className={`text-[9px] font-bold text-slate-400 font-mono ${!isBot && 'text-right'}`}>

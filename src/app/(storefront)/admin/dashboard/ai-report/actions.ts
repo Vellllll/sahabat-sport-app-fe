@@ -3,9 +3,22 @@
 
 import { serverApiFetch } from '@/lib/server-api';
 
+export interface ChatTableData {
+  columns: string[];
+  rows: Record<string, string | number | null>[];
+}
+
+export interface ChatChartData {
+  type: 'line' | 'bar' | 'pie';
+  labels: string[];
+  datasets: { label: string; data: number[] }[];
+}
+
 export interface ChatApiResponse {
   status: number;
   answer: string;
+  table: ChatTableData | null;
+  chart: ChatChartData | null;
 }
 
 export async function sendQueryToDatabaseAgent(
